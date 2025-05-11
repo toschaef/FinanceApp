@@ -1,0 +1,113 @@
+import { useEffect, useState, useContext } from "react";
+import Context from '../Context';
+import formatCurrency from '../util/formatCurrency';
+
+const Transactions = () => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const { email, state_transactions, dispatch } = useContext(Context);
+
+  const fetchTransactions = async () => {
+    setLoading(true);
+    const res = await fetch(`/api/transactions?email=${email}`);
+    if (!res.ok) {
+      console.error("Could not fetch transactions");
+      setError("Internal server error")
+      return [];
+    }
+  
+    const data = await res.json();
+    console.log("Transaction data", data);
+    const formattedTransactions = data.transactions.map((t) => ({
+      bank_name: t.bank_name || "institution name not found",
+      account_id: t.account_id,
+      account_name: t.account_name || "account name not found",
+      name: t.name,
+      amount: t.amount,
+      iso_currency_code: t.iso_currency_code,
+      date: t.date,
+    }));
+    return formattedTransactions;
+  };
+
+  const groupByBankAndAccount = (transactions) => {
+    const grouped = {};
+    for (const t of transactions) {
+      const bankKey = t.bank_name;
+      const accountKey = t.account_name;
+  
+      if (!grouped[bankKey]) grouped[bankKey] = {};
+      if (!grouped[bankKey][accountKey]) grouped[bankKey][accountKey] = [];
+      grouped[bankKey][accountKey].push(t);
+    }
+    return grouped;
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const transactionData = await fetchTransactions();
+        const grouped = groupByBankAndAccount(transactionData);
+        dispatch({
+          type: "SET_STATE",
+          state: { state_transactions: grouped },
+        });
+        setTransactions(grouped);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load transactions");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (state_transactions) {
+      setTransactions(state_transactions);
+      setLoading(false);
+    } else {
+      load();
+    }
+  }, []);  
+
+  return (
+    <div>
+      <h1>Transactions</h1>
+        {loading ? (
+          <p>Loading transactions...</p>
+        ) : error ? (
+          <p>{error}</p>
+        ) : Object.keys(transactions).length === 0 ? (
+          <p>No transactions found.</p>
+        ) : (
+          <>
+          {Object.entries(transactions)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([bankName, accounts]) => (
+              <div key={bankName}>
+                <h2>{bankName}</h2>
+                {Object.entries(accounts)
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([accountName, txns]) => (
+                    <div key={accountName}>
+                      <h3>{accountName}</h3>
+                      <ul>
+                        {txns.map((t, idx) => (
+                          <li key={idx}>
+                          {t.name} - 
+                          <span>
+                            {formatCurrency(Math.abs(t.amount), t.iso_currency_code)}
+                          </span> on {t.date}
+                        </li>
+                        ))}
+                      </ul>
+                    </div>
+                ))}
+              </div>
+          ))}
+          </>
+        )}
+    </div>
+  );
+};
+
+export default Transactions;
