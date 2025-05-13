@@ -20,13 +20,13 @@ const Transactions = () => {
     const data = await res.json();
     console.log("Transaction data", data);
     const formattedTransactions = data.transactions.map((t) => ({
-      bank_name: t.bank_name || "institution name not found",
+      bank_name: t.institution_name || "institution name not found",
       account_id: t.account_id,
       account_name: t.account_name || "account name not found",
-      name: t.name,
+      name: t.transaction_name,
       amount: t.amount,
       iso_currency_code: t.iso_currency_code,
-      date: t.date,
+      date: t.transaction_date.split('T')[0],
     }));
     return formattedTransactions;
   };

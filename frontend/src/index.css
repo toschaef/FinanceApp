@@ -12,6 +12,9 @@
     }
 }
 
-button, input {
+input {
   max-width: 300px;
+}
+button {
+  max-width: 225px;
 }

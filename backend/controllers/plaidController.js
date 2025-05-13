@@ -15,7 +15,7 @@ const createLinkToken = async (req, res) => {
     };
 
     const response = await client.linkTokenCreate(configs);
-    console.log(`\nNew link token created for ${email}`);
+    console.log(`\nNew link token created`);
     res.json(response.data);
   } catch (err) {
     console.error('Error creating link token:', err);
@@ -27,19 +27,13 @@ const setAccessToken = async (req, res) => {
   const { public_token, email } = req.body;
 
   try {
+    // get access token
     const tokenResponse = await client.itemPublicTokenExchange({ public_token });
     const { access_token, item_id } = tokenResponse.data;
 
-    const [userRows] = await db.promise().execute(
-      'SELECT id FROM users WHERE email = ?',
-      [email]
-    );
-
-    if (userRows.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    const user_id = userRows[0].id;
+    const [[userRow]] = await db.promise().execute('SELECT id FROM users WHERE email = ?', [email]);
+    if (!userRow) return res.status(404).json({ message: 'User not found' });
+    const user_id = userRow.id;
 
     let institutionName = "Unknown Bank";
     const itemRes = await client.itemGet({ access_token });
@@ -49,7 +43,8 @@ const setAccessToken = async (req, res) => {
       country_codes: ['US'],
     });
     institutionName = institutionRes.data.institution.name;
-
+    
+    // store item in items
     await db.promise().execute(
       `insert into items (user_id, item_id, access_token, bank_name) values (?, ?, ?, ?)`,
       [user_id, item_id, access_token, institutionName]
@@ -58,12 +53,59 @@ const setAccessToken = async (req, res) => {
     const response = await client.accountsGet({ access_token });
     const accounts = response.data.accounts;
 
-    for (const account of accounts) {
-      await db.promise().execute(
-        `insert into accounts (account_id, user_id, item_id, account_balance, iso_currency_code, account_name, account_type, account_subtype, institution_name) values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [account.account_id, user_id, item_id, account.balances.current, account.balances.iso_currency_code, account.name, account.type, account.subtype, institutionName]
-      );
+    if (accounts.length > 0) {
+      const accountValues = accounts.map(account => [
+        account.account_id,
+        user_id,
+        item_id,
+        account.balances.current,
+        account.balances.iso_currency_code,
+        account.name,
+        account.type,
+        account.subtype,
+        institutionName,
+      ]);
+    
+      const query = `insert into accounts (account_id, user_id, item_id, account_balance, iso_currency_code, account_name, account_type, account_subtype, institution_name) values ?`;
+
+      await db.promise().query(query, [accountValues]);
     }
+    console.log('\ninserted accounts');
+
+    const accountMap = Object.fromEntries(
+      accounts.map(a => [a.account_id, a.name])
+    );
+
+    // store transactions in transactions
+    const startDate = '2000-01-01';
+    const endDate = new Date().toISOString().split('T')[0];
+
+    const transactionsResponse = await client.transactionsGet({
+      access_token,
+      start_date: startDate,
+      end_date: endDate,
+    });
+
+    const transactions = transactionsResponse.data.transactions;
+
+    if (transactions.length > 0) {
+      const transactionData = transactions.map(txn => [
+        user_id,
+        item_id,
+        txn.account_id,
+        txn.amount,
+        txn.name,
+        txn.iso_currency_code,
+        txn.date,
+        accountMap[txn.account_id] || 'Unknown Account',
+        txn.payment_channel || 'unresolved',
+        txn.transaction_code || '',
+        institutionName,
+      ]);
+      const query = `insert into transactions (user_id, item_id, account_id, amount, transaction_name, iso_currency_code, transaction_date, account_name, payment_channel, transaction_subtype, institution_name) values ?`;
+      await db.promise().query(query, [transactionData]);
+    }
+    console.log('inserted transactions');
 
     res.json({ bank_name: institutionName });
   } catch (err) {
@@ -95,65 +137,14 @@ const getAccounts = async (req, res) => {
 const getTransactions = async (req, res) => {
   const email = req.query.email;
   try {
-    // get id from email
-    const [[{ id: userId = null } = {}]] = await db.promise().execute('SELECT id FROM users WHERE email = ?', [email]);
+    const [[{ id: userId = null } = {}]] = await db.promise().execute('select id from users where email = ?', [email]);
 
     if (!userId) return res.status(404).json({ message: 'User not found' });
-    // get access_tokens from each item
-    const [itemRows] = await db.promise().execute('SELECT access_token FROM items WHERE user_id = ?', [userId]);
 
-    if (!itemRows.length)
-      return res.status(404).json({ message: 'No linked accounts found' });
-
-    // fetch every transaction
-    const perItem = await Promise.all(
-      itemRows.map(async ({ access_token }) => {
-        // first /transactions/sync call (gets accounts + first page)
-        let cursor   = null;
-        let added    = [];
-        let hasMore  = true;
-
-        const firstPage = await client.transactionsSync({ access_token, cursor });
-        cursor   = firstPage.data.next_cursor;
-        added    = added.concat(firstPage.data.added);
-        hasMore  = firstPage.data.has_more;
-
-        // account map comes **free** in the same payload
-        const accountMap = Object.fromEntries(
-          firstPage.data.accounts.map(a => [
-            a.account_id,
-            a.name || a.official_name || 'Unnamed account',
-          ]),
-        );
-
-        // keep paginating if necessary
-        while (hasMore) {
-          const { data } = await client.transactionsSync({ access_token, cursor });
-          cursor   = data.next_cursor;
-          added    = added.concat(data.added);
-          hasMore  = data.has_more;
-        }
-
-        // one inexpensive /item/get for institution_id & name
-        const {
-          data: {
-            item: { institution_id: instId, institution_name: instName = 'Unknown bank' },
-          },
-        } = await client.itemGet({ access_token });
-
-        return { added, accountMap, instId, instName };
-      }),
-    );
-
-    const instIds = new Set(perItem.map(x => x.instId).filter(Boolean));
-    const namesFromApi = await fetchInstitutionNames(client, instIds);
-
-    const transactions = perItem.flatMap(({ added, accountMap, instId, instName }) =>
-      added.map(tx => ({
-        ...tx,
-        account_name: accountMap[tx.account_id] || 'Unknown account',
-        bank_name: namesFromApi[instId] || instName,
-      })),
+    // fetch transactions
+    const [transactions] = await db.promise().execute(
+      'select * from transactions where user_id = ?',
+      [userId]
     );
 
     res.json({ transactions });
@@ -161,7 +152,7 @@ const getTransactions = async (req, res) => {
     console.error(err);
     res.status(500).json({ message: 'Failed to fetch transactions' });
   }
-};
+}
 
 const getInvestments = async (req, res) => {
   const email = req.query.email;
