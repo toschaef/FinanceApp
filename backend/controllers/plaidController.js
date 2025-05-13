@@ -15,7 +15,7 @@ const createLinkToken = async (req, res) => {
     };
 
     const response = await client.linkTokenCreate(configs);
-    console.log(`New link token created`);
+    console.log(`\nNew link token created for ${email}`);
     res.json(response.data);
   } catch (err) {
     console.error('Error creating link token:', err);
@@ -44,26 +44,53 @@ const setAccessToken = async (req, res) => {
     let institutionName = "Unknown Bank";
     const itemRes = await client.itemGet({ access_token });
 
-    if (itemRes.data.item.institution_id) {
-      const institutionRes = await client.institutionsGetById({
-        institution_id: itemRes.data.item.institution_id,
-        country_codes: ['US'],
-      });
-
-      institutionName = institutionRes.data.institution.name;
-    }
+    const institutionRes = await client.institutionsGetById({
+      institution_id: itemRes.data.item.institution_id,
+      country_codes: ['US'],
+    });
+    institutionName = institutionRes.data.institution.name;
 
     await db.promise().execute(
-      `INSERT INTO items (user_id, item_id, access_token, bank_name) VALUES (?, ?, ?, ?)`,
+      `insert into items (user_id, item_id, access_token, bank_name) values (?, ?, ?, ?)`,
       [user_id, item_id, access_token, institutionName]
     );
 
-    res.json({ item_id, access_token, bank_name: institutionName });
+    const response = await client.accountsGet({ access_token });
+    const accounts = response.data.accounts;
+
+    for (const account of accounts) {
+      await db.promise().execute(
+        `insert into accounts (account_id, user_id, item_id, account_balance, iso_currency_code, account_name, account_type, account_subtype, institution_name) values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [account.account_id, user_id, item_id, account.balances.current, account.balances.iso_currency_code, account.name, account.type, account.subtype, institutionName]
+      );
+    }
+
+    res.json({ bank_name: institutionName });
   } catch (err) {
     console.error('Error setting access token:', err);
     res.status(500).json({ error: 'Token exchange failed' });
   }
 };
+
+const getAccounts = async (req, res) => {
+  const email = req.query.email;
+  try {
+    const [[{ id: userId = null } = {}]] = await db.promise().execute('select id from users where email = ?', [email]);
+
+    if (!userId) return res.status(404).json({ message: 'User not found' });
+
+    // fetch every account
+    const [accounts] = await db.promise().execute(
+      'SELECT * FROM accounts WHERE user_id = ?',
+      [userId]
+    );
+
+    res.json({ accounts });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch accounts' });
+  }
+}
 
 const getTransactions = async (req, res) => {
   const email = req.query.email;
@@ -107,7 +134,7 @@ const getTransactions = async (req, res) => {
           hasMore  = data.has_more;
         }
 
-        // b) one inexpensive /item/get for institution_id & name
+        // one inexpensive /item/get for institution_id & name
         const {
           data: {
             item: { institution_id: instId, institution_name: instName = 'Unknown bank' },
@@ -118,11 +145,9 @@ const getTransactions = async (req, res) => {
       }),
     );
 
-    // 3. one institutions lookup per unique bank ----------------------------
     const instIds = new Set(perItem.map(x => x.instId).filter(Boolean));
-    const namesFromApi = await fetchInstitutionNames(client, instIds); // see util above
+    const namesFromApi = await fetchInstitutionNames(client, instIds);
 
-    // 4. hydrate and flatten -------------------------------------------------
     const transactions = perItem.flatMap(({ added, accountMap, instId, instName }) =>
       added.map(tx => ({
         ...tx,
@@ -206,6 +231,7 @@ const getInvestments = async (req, res) => {
 module.exports = {
   createLinkToken,
   setAccessToken,
+  getAccounts,
   getTransactions,
   getInvestments,
 };

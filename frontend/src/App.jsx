@@ -19,7 +19,8 @@ const App = () => {
           <>
             <Route path='/' element={<Login />} />
             <Route path='/register' element={<Register />} />
-            <Route path='/verify-email' element={<VerifyEmail />} />
+            <Route path='/verify-email' element={<VerifyEmail path='' />} />
+            {/* <Route path='/forgot-email' element={<ForgotEmail />} /> */}
             <Route path='*' element={<Navigate to='/' />} />
           </>
         ) : (

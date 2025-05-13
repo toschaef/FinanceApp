@@ -25,7 +25,7 @@ const register = async (req, res) => {
 
     const code = generateCode();
     const encryptedPassword = await encrypt(password);
-    console.log(`Code for ${email}: ${code}`);
+    console.log(`\nCode for ${email}: ${code}`);
     await redis.set(`verify:${email}:${code}`, encryptedPassword, { EX: 300 });
 
     await transporter.sendMail({

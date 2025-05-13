@@ -14,6 +14,7 @@ const initialState = {
   hasItem: false,
   state_transactions: null,
   state_investments: null,
+  state_accounts: null,
   bankNames: [],
 };
 

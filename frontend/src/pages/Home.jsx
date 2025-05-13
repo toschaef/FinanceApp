@@ -5,12 +5,14 @@ import Context from '../Context';
 import NavBar from '../components/NavBar';
 import Transactions from '../components/Transactions';
 import Investments from '../components/Investments';
+import Accounts from '../components/Accounts';
 
 const Home = () => {
   const { hasItem, dispatch } = useContext(Context);
   const navigate = useNavigate();
   const [t, setT] = useState(false);
   const [i, setI] = useState(false);
+  const [a, setA] = useState(false);
 
   const handleLogout = () => {
     dispatch({ type: "WIPE_STATE" });
@@ -23,6 +25,9 @@ const Home = () => {
   }
   const renderI = () => {
     setI(true);
+  }
+  const renderA = () => {
+    setA(true);
   }
 
   return (
@@ -44,6 +49,9 @@ const Home = () => {
         {!i &&
         <button onClick={renderI}>Render Investments</button>}
         {i && <Investments />}
+        {!a &&
+        <button onClick={renderA}>Render Accounts</button>}
+        {a && <Accounts />}
       </>
       }
     </div>

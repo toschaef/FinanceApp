@@ -1,16 +1,16 @@
-import React, { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Context from '../Context';
 
-const VerifyEmail = ({ path }) => {
-  const [verificationCode, setVerificationCode] = useState('');
+const ForgotEmail = () => {
+  const [inputEmail, setInputEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { email, dispatch } = useContext(Context);
   const navigate = useNavigate();
 
-  const handleVerification = async (e) => {
+  const handleForgotEmail = async (e) => {
     setLoading(true);
     setError('');
     e.preventDefault();
@@ -26,7 +26,7 @@ const VerifyEmail = ({ path }) => {
         },
       });
       setLoading(false);
-      navigate(`/${path}`); // redirects to input path
+      navigate('/verify-email'); // redirects to verify email
     } catch (err) {
       setLoading(false);
       console.log("Error logging in", err);
@@ -37,12 +37,19 @@ const VerifyEmail = ({ path }) => {
   return (
     <>
       <div>
+        {!email?
+        <>
+        <SetEmail />
+        </>
+        :
+        <>
+        {}
         <h3>Enter code emailed to {email}</h3>
-        <form onSubmit={handleVerification}>
+        <form onSubmit={handleForgotEmail}>
           <input
             type="text"
-            value={verificationCode}
-            onChange={(e) => setVerificationCode(e.target.value)}
+            value={email}
+            onChange={(e) => setInputEmail(e.target.value)}
             required
           />
           <button 
@@ -52,11 +59,13 @@ const VerifyEmail = ({ path }) => {
             {loading?"Verifying...":"Verify"}
           </button>
         </form>
+        </>
+        }
       </div>
       {error && <p>{error}</p>}
     </>
+    
   );
-  
 };
 
-export default VerifyEmail;
+export default ForgotEmail;

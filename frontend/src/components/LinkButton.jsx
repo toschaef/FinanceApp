@@ -3,7 +3,7 @@ import useLinkConnect from '../util/useLinkConnect'
 import Context from '../Context';
 
 const LinkButton = ({ text }) => {
-  const { dispatch, email } = useContext(Context);
+  const { email, bankNames, dispatch } = useContext(Context);
 
   const handleClick = useLinkConnect({
     onSuccess: async (publicToken, meta) => {
