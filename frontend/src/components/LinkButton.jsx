@@ -15,13 +15,15 @@ const LinkButton = ({ text }) => {
         });
         dispatch({
           type: "SET_STATE",
-          hasItem: true,
-          bankNames: [...bankNames, res.data.bank_name],
+          state: {
+            hasItem: true,
+            bankNames: [...bankNames, res.data.bank_name],
+          }
         });
       } catch (err) {
         console.error('Error setting access token', err);
       }
-    },    
+    },
     onExit: () => console.log('plaid window closed'),
   });
 

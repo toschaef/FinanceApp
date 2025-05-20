@@ -5,7 +5,7 @@ import NavBar from '../components/NavBar';
 import axios from 'axios';
 
 const ManageBanks = () => {
-  const { email, bankNames, dispatch } = useContext(Context);
+  const { email, bankNames, hasItem, dispatch } = useContext(Context);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -39,7 +39,7 @@ const ManageBanks = () => {
       {loading && <p>loading...</p>}
       {error && <p>{error}</p>}
       <ul>
-        {bankNames.length > 0 ? (
+        {hasItem ? (
           bankNames.map((name) => (
             <li key={name}>
               <h1>{name}</h1>

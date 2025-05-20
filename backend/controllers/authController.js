@@ -83,7 +83,8 @@ const login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid password' });
     }
 
-    const bankNames = rows.map(row => row.bank_name);
+    const rawbankNames = rows.map(row => row.bank_name);
+    const bankNames = rawbankNames.filter(n => n != null);
     const hasItem = !!bankNames.length;
 
     res.status(200).json({

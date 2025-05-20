@@ -13,12 +13,12 @@ const Investments = () => {
     const res = await axios.get(`/api/investments?email=${email}`);
 
     console.log("Investment data", res.data);
-    
+
     return res.data.investments.map((h) => ({
-      bank_name: h.bank_name || "institution name not found",
+      bank_name: h.institution_name || "institution name not found",
       account_id: h.account_id,
       account_name: h.account_name || "account name not found",
-      name: h.name,
+      name: h.investment_name,
       institution_value: h.institution_value,
       iso_currency_code: h.iso_currency_code,
     }));

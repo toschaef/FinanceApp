@@ -46,3 +46,37 @@ CREATE TABLE transactions (
   institution_name VARCHAR(255) NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE investments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  item_id VARCHAR(255) NOT NULL,
+  account_id VARCHAR(255) NOT NULL,
+  security_id VARCHAR(255) NOT NULL,
+  quantity DECIMAL(18,4) NOT NULL,
+  institution_price DECIMAL(18,4) NOT NULL,
+  institution_value DECIMAL(18,2),
+  iso_currency_code VARCHAR(10),
+  investment_name VARCHAR(255) NOT NULL,
+  ticker_symbol VARCHAR(20),
+  institution_name VARCHAR(255) NOT NULL,
+  account_name VARCHAR(255) NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE investment_transactions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  item_id VARCHAR(255) NOT NULL,
+  account_id VARCHAR(255) NOT NULL,
+  investment_transaction_id VARCHAR(255) NOT NULL,
+  security_id VARCHAR(255) NOT NULL,
+  type VARCHAR(50),
+  subtype VARCHAR(50),
+  transaction_date DATE NOT NULL,
+  amount DECIMAL(18, 2) NOT NULL,
+  price DECIMAL(18, 4),
+  quantity DECIMAL(18, 4),
+  iso_currency_code VARCHAR(10),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);

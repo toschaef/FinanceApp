@@ -23,6 +23,8 @@ const createLinkToken = async (req, res) => {
 
 const setAccessToken = async (req, res) => {
   const { public_token, email } = req.body;
+  const startDate = '2000-01-01';
+  const endDate = new Date().toISOString().split('T')[0];
 
   try {
     // get access token
@@ -44,12 +46,14 @@ const setAccessToken = async (req, res) => {
     
     // store item in items
     await db.promise().execute(
-      `insert into items (user_id, item_id, access_token, bank_name) values (?, ?, ?, ?)`,
+      `insert into items
+       (user_id, item_id, access_token, bank_name)
+       values (?, ?, ?, ?)`,
       [user_id, item_id, access_token, institutionName]
     );
 
-    const response = await client.accountsGet({ access_token });
-    const accounts = response.data.accounts;
+    const accountsResponse = await client.accountsGet({ access_token });
+    const accounts = accountsResponse.data.accounts;
 
     if (accounts.length > 0) {
       const accountValues = accounts.map(account => [
@@ -64,20 +68,20 @@ const setAccessToken = async (req, res) => {
         institutionName,
       ]);
 
-      await db.promise().execute(
-        `insert into accounts (account_id, user_id, item_id, account_balance, iso_currency_code, account_name, account_type, account_subtype, institution_name) values ?`,
+      await db.promise().query(
+        `insert into accounts
+         (account_id, user_id, item_id, account_balance, iso_currency_code, account_name, account_type, account_subtype, institution_name)
+          values ?`,
         [accountValues]
       );
     }
+    console.log('inserted accounts');
 
     const accountMap = Object.fromEntries(
       accounts.map(a => [a.account_id, a.name])
     );
 
     // store transactions in transactions
-    const startDate = '2000-01-01';
-    const endDate = new Date().toISOString().split('T')[0];
-
     const transactionsResponse = await client.transactionsGet({
       access_token,
       start_date: startDate,
@@ -101,12 +105,88 @@ const setAccessToken = async (req, res) => {
         institutionName,
       ]);
 
-      await db.promise().execute(
-        `insert into transactions (user_id, item_id, account_id, amount, transaction_name, iso_currency_code, transaction_date, account_name, payment_channel, transaction_subtype, institution_name) values ?`,
+      await db.promise().query(
+        `insert into transactions
+         (user_id, item_id, account_id, amount, transaction_name, iso_currency_code, transaction_date, account_name, payment_channel, transaction_subtype, institution_name)
+         values ?`,
         [transactionData]
       );
     }
     console.log('inserted transactions');
+
+    const investmentsResponse = await client.investmentsHoldingsGet({ access_token });
+
+    const investments = investmentsResponse.data.holdings;
+    const securities = investmentsResponse.data.securities;
+
+    const securityData = {};
+    for (const s of securities) {
+      securityData[s.security_id] = {
+        name: s.name,
+        ticker_symbol: s.ticker_symbol || ''
+      };
+    }
+
+    if (investments.length > 0) {
+      const investmentData = investments.map(inv => {
+        const s = securityData[inv.security_id]
+        return [
+          user_id,
+          item_id,
+          inv.account_id,
+          inv.security_id,
+          inv.quantity,
+          inv.institution_price,
+          inv.institution_value,
+          inv.iso_currency_code,
+          s.name,
+          s.ticker_symbol || '',
+          institutionName,
+          accountMap[inv.account_id] || 'Unknown Account',
+        ];
+      });
+
+      await db.promise().query(
+        `insert into investments
+         (user_id, item_id, account_id, security_id, quantity, institution_price, institution_value, iso_currency_code, investment_name, ticker_symbol, institution_name, account_name)
+         values ?`,
+        [investmentData]
+      );
+    }
+    console.log('inserted investments');
+
+    const investmentTransactionsResponse = await client.investmentsTransactionsGet({
+      access_token,
+      start_date: startDate,
+      end_date: endDate,
+    });
+
+    const investmentTransactions = investmentTransactionsResponse.data.investment_transactions;
+
+    if (investmentTransactions.length > 0) {
+      const investmentTransactionData = investmentTransactions.map(itxn => [
+        user_id,
+        item_id,
+        itxn.account_id,
+        itxn.investment_transaction_id,
+        itxn.security_id,
+        itxn.type,
+        itxn.subtype,
+        itxn.date,
+        itxn.amount,
+        itxn.price,
+        itxn.quantity,
+        itxn.iso_currency_code,
+      ]);
+
+      await db.promise().query(
+        `insert into investment_transactions
+         (user_id, item_id, account_id, investment_transaction_id, security_id, type, subtype, transaction_date, amount, price, quantity, iso_currency_code)
+         values ?`,
+        [investmentTransactionData]
+      );
+    }
+    console.log('inserted investment transactions');
 
     res.status(201).json({ bank_name: institutionName });
   } catch (err) {
@@ -140,7 +220,7 @@ const getTransactions = async (req, res) => {
     const [transactions] = await db.promise().execute(
       `select * from transactions where user_id = (
          select id from users where email = ?
-       )`,
+       ) order by transaction_date desc`,
       [email]
     );
 
@@ -154,59 +234,25 @@ const getTransactions = async (req, res) => {
 const getInvestments = async (req, res) => {
   const email = req.query.email;
   try {
-    const [itemRows] = await db.promise().execute(
-      `select access_token from items where user_id = (
+    // fetch investments
+     const [investments] = await db.promise().execute(
+      `select * from investments where user_id = (
          select id from users where email = ?
        )`,
       [email]
     );
-    if (itemRows.length === 0) {
-      return res.status(404).json({ message: 'No linked accounts found' });
-    }
-
-    const allHoldings = [];
-
-    for (const { access_token } of itemRows) {
-      // fetch account name
-      const accountsRes = await client.accountsGet({ access_token });
-      const accountMap = {};
-      for (const acc of accountsRes.data.accounts) {
-        accountMap[acc.account_id] = acc.name || acc.official_name || "Unnamed Account";
-      }
-
-      // fetch institiution name
-      const itemRes = await client.itemGet({ access_token });
-      let institutionName = "Unknown Bank";
-      if (itemRes.data.item.institution_id) {
-        const institutionRes = await client.institutionsGetById({
-          institution_id: itemRes.data.item.institution_id,
-          country_codes: ['US'],
-        });
-        institutionName = institutionRes.data.institution.name;
-      }
-
-      // fetch holdings
-      const holdingsRes = await client.investmentsHoldingsGet({ access_token });
-      const holdings = holdingsRes.data.holdings;
-      const securities = holdingsRes.data.securities;
-
-      const securityMap = {};
-      for (const sec of securities) {
-        securityMap[sec.security_id] = sec;
-      }
-
-      for (const holding of holdings) {
-        const security = securityMap[holding.security_id] || {};
-        allHoldings.push({
-          ...holding,
-          ...security,
-          account_name: accountMap[holding.account_id] || "Unknown Account",
-          bank_name: institutionName,
-        });
-      }
+    // add each investment_transaction
+    for (let investment of investments) {
+      const [transactions] = await db.promise().execute(
+        `select * from investment_transactions where user_id = (
+           select id from users where email = ?
+         ) and security_id = ? order by transaction_date desc`,
+        [email, investment.security_id]
+      );
+      investment.transactions = transactions;
     }
     
-    res.status(200).json({ investments: allHoldings });
+    res.status(200).json({ investments });
   } catch (err) {
     console.error('Error fetching investments:', err);
     res.status(500).json({ message: 'Failed to fetch investments' });
