@@ -62,15 +62,20 @@ const verifyAndRegister = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
+
   try {
     const [rows] = await db.promise().execute(
-      'SELECT id, email, password FROM users WHERE email = ?',
+      `SELECT u.id, u.email, u.password, i.bank_name 
+       FROM users u 
+       LEFT JOIN items i ON u.id = i.user_id 
+       WHERE u.email = ?`,
       [email]
     );
 
     if (rows.length === 0) {
       return res.status(409).json({ error: 'Email not registered' });
     }
+
     const user = rows[0];
 
     const match = await bcrypt.compare(password, user.password);
@@ -78,15 +83,10 @@ const login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid password' });
     }
 
-    const [itemRows] = await db.promise().execute(
-      'SELECT bank_name FROM items WHERE user_id = ?',
-      [user.id]
-    );
-    
-    const hasItem = itemRows.length > 0;
-    const bankNames = itemRows.map(row => row.bank_name).filter(Boolean);
+    const bankNames = rows.map(row => row.bank_name);
+    const hasItem = !!bankNames.length;
 
-    res.json({
+    res.status(200).json({
       message: 'Login successful',
       user: {
         email: user.email,

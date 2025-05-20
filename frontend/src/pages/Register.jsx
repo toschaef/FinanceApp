@@ -16,7 +16,7 @@ const Register = () => {
     setLoading(true);
     setError('');
     try {
-      await axios.post('http://localhost:5000/api/register', { email, password });
+      await axios.post('/api/register', { email, password });
       dispatch({
         type: "SET_STATE",
         state: { email }

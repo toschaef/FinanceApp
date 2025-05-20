@@ -37,6 +37,7 @@ CREATE TABLE transactions (
   item_id VARCHAR(255) NOT NULL,
   account_id VARCHAR(255) NOT NULL,
   amount DECIMAL(18,2) NOT NULL,
+  transaction_name VARCHAR(255) NOT NULL,
   iso_currency_code VARCHAR(50),
   transaction_date DATE NOT NULL,
   account_name VARCHAR(255) NOT NULL,

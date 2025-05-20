@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import Context from '../Context';
 import formatCurrency from '../util/formatCurrency';
+import axios from 'axios';
 
 const Transactions = () => {
   const [loading, setLoading] = useState(true);
@@ -9,17 +10,11 @@ const Transactions = () => {
   const { email, state_transactions, dispatch } = useContext(Context);
 
   const fetchTransactions = async () => {
-    setLoading(true);
-    const res = await fetch(`/api/transactions?email=${email}`);
-    if (!res.ok) {
-      console.error("Could not fetch transactions");
-      setError("Internal server error")
-      return [];
-    }
-  
-    const data = await res.json();
-    console.log("Transaction data", data);
-    const formattedTransactions = data.transactions.map((t) => ({
+    const res = await axios.get(`/api/transactions?email=${email}`);
+
+    console.log("Transaction data", res.data);
+    
+    return res.data.transactions.map((t) => ({
       bank_name: t.institution_name || "institution name not found",
       account_id: t.account_id,
       account_name: t.account_name || "account name not found",
@@ -28,7 +23,6 @@ const Transactions = () => {
       iso_currency_code: t.iso_currency_code,
       date: t.transaction_date.split('T')[0],
     }));
-    return formattedTransactions;
   };
 
   const groupByBankAndAccount = (transactions) => {
@@ -46,6 +40,7 @@ const Transactions = () => {
 
   useEffect(() => {
     const load = async () => {
+      setLoading(true);
       try {
         const transactionData = await fetchTransactions();
         const grouped = groupByBankAndAccount(transactionData);
@@ -63,11 +58,10 @@ const Transactions = () => {
     };
     if (state_transactions) {
       setTransactions(state_transactions);
-      setLoading(false);
     } else {
       load();
     }
-  }, []);  
+  }, []);
 
   return (
     <div>

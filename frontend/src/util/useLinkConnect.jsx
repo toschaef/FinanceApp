@@ -1,20 +1,21 @@
-import { useCallback } from 'react';
+import axios from 'axios';
 
 export default function useLinkConnect({ onSuccess, onExit }) {
   return async () => {
-    const res = await fetch('/api/create_link_token', { method: 'POST' });
-    if (!res.ok) throw new Error('failed to fetch token');
-
-    const { link_token } = await res.json();
-    const handler = window.Plaid.create({ token: link_token, onSuccess, onExit });
     if (!window.Plaid) {
-      console.error('plaid window undefined');
+      console.error('Plaid not loaded');
       return;
     }
     try {
+      const res = await axios.post('/api/create-link-token');
+      const handler = window.Plaid.create({
+        token: res.data.link_token,
+        onSuccess,
+        onExit,
+      });
       handler.open();
     } catch (err) {
-      console.error('error opening plaid window', err);
+      console.error('Error initializing Plaid Link:', err);
     }
   };
 }

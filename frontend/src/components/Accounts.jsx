@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import Context from '../Context';
 import formatCurrency from '../util/formatCurrency';
+import axios from 'axios';
 
 const Accounts = () => {
   const [loading, setLoading] = useState(true);
@@ -9,23 +10,16 @@ const Accounts = () => {
   const { email, state_accounts, dispatch } = useContext(Context);
 
   const fetchAccounts = async () => {
-    setLoading(true);
-    const res = await fetch(`/api/accounts?email=${email}`);
-    if (!res.ok) {
-      console.error("Could not fetch accounts");
-      setError("Internal server error")
-      return [];
-    }
-  
-    const data = await res.json();
-    console.log("Account data", data);
-    const formattedAccounts = data.accounts.map((a) => ({
+    const res = await axios.get(`/api/accounts?email=${email}`);
+
+    console.log("Account data", res.data);
+    
+    return res.data.accounts.map((a) => ({
       institution_name: a.institution_name || "institution name not found",
       account_name: a.account_name || "account name not found",
       balance: a.account_balance,
       iso_currency_code: a.iso_currency_code || 'USD',
     }));
-    return formattedAccounts;
   };
 
   const groupByBank = (accounts) => {
@@ -41,6 +35,7 @@ const Accounts = () => {
 
   useEffect(() => {
     const load = async () => {
+      setLoading(true);
       try {
         const accountData = await fetchAccounts();
         const grouped = groupByBank(accountData);
@@ -58,11 +53,10 @@ const Accounts = () => {
     };
     if (state_accounts) {
       setAccounts(state_accounts);
-      setLoading(false);
     } else {
       load();
     }
-  }, []);  
+  }, []);
 
   return (
     <div>

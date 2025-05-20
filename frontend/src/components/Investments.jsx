@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext } from "react";
-import Context from '../Context'
-import formatCurrency from '../util/formatCurrency'
+import Context from '../Context';
+import formatCurrency from '../util/formatCurrency';
+import axios from 'axios';
 
 const Investments = () => {
   const [loading, setLoading] = useState(true);
@@ -9,18 +10,11 @@ const Investments = () => {
   const { email, state_investments, dispatch } = useContext(Context);
 
   const fetchHoldings = async () => {
-    setLoading(true);
-    const res = await fetch(`/api/investments?email=${email}`);
-    if (!res.ok) {
-      console.error("Could not fetch investments");
-      setError("Internal server error");
-      return [];
-    }
-  
-    const data = await res.json();
-    console.log("Investment data", data);
-    setLoading(false);
-    return data.investments.map((h) => ({
+    const res = await axios.get(`/api/investments?email=${email}`);
+
+    console.log("Investment data", res.data);
+    
+    return res.data.investments.map((h) => ({
       bank_name: h.bank_name || "institution name not found",
       account_id: h.account_id,
       account_name: h.account_name || "account name not found",
@@ -28,8 +22,7 @@ const Investments = () => {
       institution_value: h.institution_value,
       iso_currency_code: h.iso_currency_code,
     }));
-  };
-
+  };  
   const groupByBankAndAccount = (holdings) => {
     const grouped = {};
     for (const i of holdings) {
@@ -45,6 +38,7 @@ const Investments = () => {
 
   useEffect(() => {
     const load = async () => {
+      setLoading(true);
       try {
         const holdingsData = await fetchHoldings();
         const grouped = groupByBankAndAccount(holdingsData);
@@ -62,11 +56,10 @@ const Investments = () => {
     }; 
     if (state_investments) {
       setHoldings(state_investments);
-      setLoading(false);
     } else {
       load();
     }
-  }, []);  
+  }, []);
 
   return (
     <div>

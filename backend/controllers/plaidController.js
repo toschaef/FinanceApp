@@ -1,7 +1,5 @@
 const db = require('../config/db');
 const client = require('../config/plaid');
-const fetchInstitutionNames = require('../helpers/fetchInstitutionNames')
-const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 const createLinkToken = async (req, res) => {
@@ -16,7 +14,7 @@ const createLinkToken = async (req, res) => {
 
     const response = await client.linkTokenCreate(configs);
     console.log(`\nNew link token created`);
-    res.json(response.data);
+    res.status(201).json(response.data);
   } catch (err) {
     console.error('Error creating link token:', err);
     res.status(500).json({ error: 'Failed to create link token' });
@@ -31,7 +29,7 @@ const setAccessToken = async (req, res) => {
     const tokenResponse = await client.itemPublicTokenExchange({ public_token });
     const { access_token, item_id } = tokenResponse.data;
 
-    const [[userRow]] = await db.promise().execute('SELECT id FROM users WHERE email = ?', [email]);
+    const [[userRow]] = await db.promise().execute('select id from users where email = ?', [email]);
     if (!userRow) return res.status(404).json({ message: 'User not found' });
     const user_id = userRow.id;
 
@@ -65,12 +63,12 @@ const setAccessToken = async (req, res) => {
         account.subtype,
         institutionName,
       ]);
-    
-      const query = `insert into accounts (account_id, user_id, item_id, account_balance, iso_currency_code, account_name, account_type, account_subtype, institution_name) values ?`;
 
-      await db.promise().query(query, [accountValues]);
+      await db.promise().execute(
+        `insert into accounts (account_id, user_id, item_id, account_balance, iso_currency_code, account_name, account_type, account_subtype, institution_name) values ?`,
+        [accountValues]
+      );
     }
-    console.log('\ninserted accounts');
 
     const accountMap = Object.fromEntries(
       accounts.map(a => [a.account_id, a.name])
@@ -102,12 +100,15 @@ const setAccessToken = async (req, res) => {
         txn.transaction_code || '',
         institutionName,
       ]);
-      const query = `insert into transactions (user_id, item_id, account_id, amount, transaction_name, iso_currency_code, transaction_date, account_name, payment_channel, transaction_subtype, institution_name) values ?`;
-      await db.promise().query(query, [transactionData]);
+
+      await db.promise().execute(
+        `insert into transactions (user_id, item_id, account_id, amount, transaction_name, iso_currency_code, transaction_date, account_name, payment_channel, transaction_subtype, institution_name) values ?`,
+        [transactionData]
+      );
     }
     console.log('inserted transactions');
 
-    res.json({ bank_name: institutionName });
+    res.status(201).json({ bank_name: institutionName });
   } catch (err) {
     console.error('Error setting access token:', err);
     res.status(500).json({ error: 'Token exchange failed' });
@@ -117,17 +118,15 @@ const setAccessToken = async (req, res) => {
 const getAccounts = async (req, res) => {
   const email = req.query.email;
   try {
-    const [[{ id: userId = null } = {}]] = await db.promise().execute('select id from users where email = ?', [email]);
-
-    if (!userId) return res.status(404).json({ message: 'User not found' });
-
     // fetch every account
     const [accounts] = await db.promise().execute(
-      'SELECT * FROM accounts WHERE user_id = ?',
-      [userId]
+      `select * from accounts where user_id = (
+         select id from users where email = ?
+       )`,
+      [email]
     );
 
-    res.json({ accounts });
+    res.status(200).json({ accounts });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to fetch accounts' });
@@ -137,17 +136,15 @@ const getAccounts = async (req, res) => {
 const getTransactions = async (req, res) => {
   const email = req.query.email;
   try {
-    const [[{ id: userId = null } = {}]] = await db.promise().execute('select id from users where email = ?', [email]);
-
-    if (!userId) return res.status(404).json({ message: 'User not found' });
-
     // fetch transactions
     const [transactions] = await db.promise().execute(
-      'select * from transactions where user_id = ?',
-      [userId]
+      `select * from transactions where user_id = (
+         select id from users where email = ?
+       )`,
+      [email]
     );
 
-    res.json({ transactions });
+    res.status(200).json({ transactions });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to fetch transactions' });
@@ -156,15 +153,13 @@ const getTransactions = async (req, res) => {
 
 const getInvestments = async (req, res) => {
   const email = req.query.email;
-
   try {
-    const [userRows] = await db.promise().execute('SELECT id FROM users WHERE email = ?', [email]);
-    if (userRows.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    
-    const user_id = userRows[0].id;
-    const [itemRows] = await db.promise().execute('SELECT access_token FROM items WHERE user_id = ?', [user_id]);
+    const [itemRows] = await db.promise().execute(
+      `select access_token from items where user_id = (
+         select id from users where email = ?
+       )`,
+      [email]
+    );
     if (itemRows.length === 0) {
       return res.status(404).json({ message: 'No linked accounts found' });
     }
@@ -210,14 +205,43 @@ const getInvestments = async (req, res) => {
         });
       }
     }
-
-    res.json({ investments: allHoldings });
+    
+    res.status(200).json({ investments: allHoldings });
   } catch (err) {
     console.error('Error fetching investments:', err);
     res.status(500).json({ message: 'Failed to fetch investments' });
   }
 };
-  
+
+const deleteItem = async (req, res) => {
+  const { bankName, email } = req.query;
+  if (!bankName || !email) {
+    console.log("tried to delete bank but email or bankname is null")
+    return res.status(400).json({ error: "bankName and email are required" });
+  }
+  try {
+    await db.promise().execute(
+      `with item as (
+        select i.item_id 
+        from items i 
+        join users u on i.user_id = u.id 
+        where i.bank_name = ? and u.email = ?
+        limit 1
+      )
+      delete transactions, accounts, items 
+      from transactions 
+      join accounts on transactions.item_id = accounts.item_id 
+      join items on accounts.item_id = items.item_id 
+      where transactions.item_id in (select item_id from item)`,
+      [bankName, email]
+    );
+
+    return res.status(200).json({ message: "Item deleted successfully" });
+  } catch (err) {
+    console.log('Error deleting item', err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 module.exports = {
   createLinkToken,
@@ -225,4 +249,5 @@ module.exports = {
   getAccounts,
   getTransactions,
   getInvestments,
+  deleteItem,
 };

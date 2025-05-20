@@ -16,11 +16,9 @@ app.use(cors());
 // routes
 const authRoutes = require('./routes/authRoutes');
 const plaidRoutes = require('./routes/plaidRoutes');
-// const craRoutes = require('./routes/craRoutes');
 
 app.use('/api', authRoutes);
 app.use('/api', plaidRoutes);
-// app.use('/api', craRoutes);
 
 // error handler
 app.use((error, req, res, next) => {

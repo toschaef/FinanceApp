@@ -1,14 +1,6 @@
 import React, { createContext, useReducer } from "react";
 
 const initialState = {
-  linkToken: null,
-  linkTokenError: null,
-  isPaymentInitiation: false,
-  isCraProductsExclusively: false,
-  isUserTokenFlow: false,
-  products: [],
-  backend: true,
-  userToken: null,
   email: null,
   loggedIn: false,
   hasItem: false,
@@ -24,11 +16,12 @@ const reducer = (state, action) => {
       return { ...state, ...action.state };
     case "WIPE_STATE":
         return { ...initialState };
-    case "ADD_BANK":
+    case "REM_BANK":
+      const filtered = bankNames.filter((e) => { e !== action.bankName }); 
       return {
         ...state,
-        bankNames: [...state.bankNames, action.bankName],
-      };
+        bankNames: filtered,
+      }
     default:
       return state;
   }
