@@ -6,6 +6,7 @@ import NavBar from '../components/NavBar';
 import Transactions from '../components/Transactions';
 import Investments from '../components/Investments';
 import Accounts from '../components/Accounts';
+// import Graph from '../components/Graph';
 
 const Home = () => {
   const { hasItem, dispatch } = useContext(Context);
@@ -43,6 +44,9 @@ const Home = () => {
       </>
       :
       <>
+        {/* <div style={{ width: '100%', height: '400px' }}>
+          <Graph />
+        </div> */}
         {!t &&
         <button onClick={renderT}>Render Transactions</button>}
         {t && <Transactions />}

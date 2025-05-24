@@ -8,18 +8,18 @@ This is a wip finance app with a react frontend and a node backend. It uses Plai
 - Retrival and display of user transactions + investments
 - Password incryption via bcrypt
 
-## Libraries Used
-- React
-- Node.js
-- MySql
-- Plaid API
-- Redis
-- Tailwind CSS (installed, not used yet)
+## Technologies used
+- react
+- express.js
+- axios
+- mySql
+- redis
+- plaid API
 - bcrypt
 
 ## Future Features
-- account balance component
+- dynamic graph to show useful finance data
 - recurring transaction component
 - tailwind styles
-- caching frequent requests
+- stronger server security
 - graph for ui

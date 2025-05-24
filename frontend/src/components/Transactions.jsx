@@ -4,7 +4,7 @@ import formatCurrency from '../util/formatCurrency';
 import axios from 'axios';
 
 const Transactions = () => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const { email, state_transactions, dispatch } = useContext(Context);
@@ -14,7 +14,11 @@ const Transactions = () => {
 
     console.log("Transaction data", res.data);
     
-    return res.data.transactions.map((t) => ({
+    return res.data.transactions;
+  };
+
+  const groupByBankAndAccount = (transactions) => {
+    const mappedTransactions = transactions.map((t) => ({
       bank_name: t.institution_name || "institution name not found",
       account_id: t.account_id,
       account_name: t.account_name || "account name not found",
@@ -23,11 +27,9 @@ const Transactions = () => {
       iso_currency_code: t.iso_currency_code,
       date: t.transaction_date.split('T')[0],
     }));
-  };
-
-  const groupByBankAndAccount = (transactions) => {
+    
     const grouped = {};
-    for (const t of transactions) {
+    for (const t of mappedTransactions) {
       const bankKey = t.bank_name;
       const accountKey = t.account_name;
   
@@ -43,11 +45,11 @@ const Transactions = () => {
       setLoading(true);
       try {
         const transactionData = await fetchTransactions();
-        const grouped = groupByBankAndAccount(transactionData);
         dispatch({
           type: "SET_STATE",
-          state: { state_transactions: grouped },
+          state: { state_transactions: transactionData },
         });
+        const grouped = groupByBankAndAccount(transactionData);
         setTransactions(grouped);
       } catch (err) {
         console.error(err);
@@ -57,7 +59,7 @@ const Transactions = () => {
       }
     };
     if (state_transactions) {
-      setTransactions(state_transactions);
+      setTransactions(groupByBankAndAccount(state_transactions));
     } else {
       load();
     }

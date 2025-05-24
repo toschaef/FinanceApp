@@ -1,14 +1,15 @@
 const db = require('../config/db');
 const client = require('../config/plaid');
 require('dotenv').config();
+const { fetchAccounts, fetchTransactions, fetchInvestments } = require('./queries');
 
 const createLinkToken = async (req, res) => {
   try {
     const configs = {
       user: { client_user_id: 'user-id' },
       client_name: 'test plaid app',
-      products: (process.env.PLAID_PRODUCTS || 'transactions,investment').split(','),
-      country_codes: (process.env.PLAID_COUNTRY_CODES || 'US').split(','),
+      products: (process.env.PLAID_PRODUCTS).split(','),
+      country_codes: (process.env.PLAID_COUNTRY_CODES).split(','),
       language: 'en',
     };
 
@@ -196,16 +197,8 @@ const setAccessToken = async (req, res) => {
 };
 
 const getAccounts = async (req, res) => {
-  const email = req.query.email;
   try {
-    // fetch every account
-    const [accounts] = await db.promise().execute(
-      `select * from accounts where user_id = (
-         select id from users where email = ?
-       )`,
-      [email]
-    );
-
+    const accounts = await fetchAccounts(req.query.email);
     res.status(200).json({ accounts });
   } catch (err) {
     console.error(err);
@@ -214,16 +207,8 @@ const getAccounts = async (req, res) => {
 }
 
 const getTransactions = async (req, res) => {
-  const email = req.query.email;
   try {
-    // fetch transactions
-    const [transactions] = await db.promise().execute(
-      `select * from transactions where user_id = (
-         select id from users where email = ?
-       ) order by transaction_date desc`,
-      [email]
-    );
-
+    const transactions = await fetchTransactions(req.query.email);
     res.status(200).json({ transactions });
   } catch (err) {
     console.error(err);
@@ -232,32 +217,31 @@ const getTransactions = async (req, res) => {
 }
 
 const getInvestments = async (req, res) => {
-  const email = req.query.email;
   try {
-    // fetch investments
-     const [investments] = await db.promise().execute(
-      `select * from investments where user_id = (
-         select id from users where email = ?
-       )`,
-      [email]
-    );
-    // add each investment_transaction
-    for (let investment of investments) {
-      const [transactions] = await db.promise().execute(
-        `select * from investment_transactions where user_id = (
-           select id from users where email = ?
-         ) and security_id = ? order by transaction_date desc`,
-        [email, investment.security_id]
-      );
-      investment.transactions = transactions;
-    }
-    
+    const investments = await fetchInvestments(req.query.email);
     res.status(200).json({ investments });
   } catch (err) {
     console.error('Error fetching investments:', err);
     res.status(500).json({ message: 'Failed to fetch investments' });
   }
 };
+
+const getAll = async (req, res) => {
+  const email = req.query.email;
+  console.log(email);
+  try {
+    const [transactions, investments, accounts] = await Promise.all([
+      fetchTransactions(email),
+      fetchInvestments(email),
+      fetchAccounts(email)
+    ]);
+
+    res.status(200).json({ transactions, investments, accounts });
+  } catch (err) {
+    console.error('Error fetching all', err);
+    res.status(500).json({ message: 'Failed to fetch data' });
+  }
+}
 
 const deleteItem = async (req, res) => {
   const { bankName, email } = req.query;
@@ -295,5 +279,6 @@ module.exports = {
   getAccounts,
   getTransactions,
   getInvestments,
+  getAll,
   deleteItem,
 };

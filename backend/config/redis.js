@@ -4,7 +4,7 @@ const redis = createClient({
   socket: {
     host: 'localhost',
     port: 6379,
-    connectTimeout: 10000, // very slow
+    connectTimeout: 10000, // very, very slow
   }
 });
 
