@@ -4,7 +4,7 @@ import formatCurrency from '../util/formatCurrency';
 import axios from 'axios';
 
 const Accounts = () => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const { email, state_accounts, dispatch } = useContext(Context);
@@ -14,17 +14,19 @@ const Accounts = () => {
 
     console.log("Account data", res.data);
     
-    return res.data.accounts.map((a) => ({
+    return res.data.accounts;
+  };
+
+  const groupByBank = (accounts) => {
+    const mappedAccounts = accounts.map((a) => ({
       institution_name: a.institution_name || "institution name not found",
       account_name: a.account_name || "account name not found",
       balance: a.account_balance,
       iso_currency_code: a.iso_currency_code || 'USD',
     }));
-  };
 
-  const groupByBank = (accounts) => {
     const grouped = {};
-    for (const a of accounts) {
+    for (const a of mappedAccounts) {
       const instKey = a.institution_name;
   
       if (!grouped[instKey]) grouped[instKey] = [];
@@ -38,11 +40,11 @@ const Accounts = () => {
       setLoading(true);
       try {
         const accountData = await fetchAccounts();
-        const grouped = groupByBank(accountData);
         dispatch({
           type: "SET_STATE",
-          state: { state_accounts: grouped },
+          state: { state_accounts: accountData },
         });
+        const grouped = groupByBank(accountData);
         setAccounts(grouped);
       } catch (err) {
         console.error(err);
@@ -52,7 +54,7 @@ const Accounts = () => {
       }
     };
     if (state_accounts) {
-      setAccounts(state_accounts);
+      setAccounts(groupByBank(state_accounts));
     } else {
       load();
     }

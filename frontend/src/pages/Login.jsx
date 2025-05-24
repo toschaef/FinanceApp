@@ -17,20 +17,44 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/login', {
+      const loginRes = await axios.post('/api/login', {
         email: emailInput,
         password,
       });
-      const user = response.data.user;
-      dispatch({
-        type: "SET_STATE",
-        state: {
-          email: user.email,
-          loggedIn: true,
-          hasItem: user.hasItem,
-          bankNames: user.bankNames || ["name not found"],
-        },
-      });
+
+      const user = loginRes.data.user;
+
+      if (user.hasItem) {
+        console.log('logged in with item');
+        const res = await axios.get(`/api/all`, {
+          params: { email: emailInput },
+        });
+
+        const data = res.data;
+
+        dispatch({
+          type: "SET_STATE",
+          state: {
+            email: user.email,
+            loggedIn: true,
+            hasItem: true,
+            bankNames: user.bankNames,
+            state_transactions: data.transactions,
+            state_investments: data.investments,
+            state_accounts: data.accounts,
+          },
+        });
+      } else {
+        console.log('logged in no item');
+        dispatch({
+          type: "SET_STATE",
+          state: {
+            email: user.email,
+            loggedIn: true,
+            hasItem: false,
+          },
+        });
+      }
     } catch (err) {
       console.log("error:", err);
       const error = err.response?.data?.error || err.response?.data?.message || "network error";
