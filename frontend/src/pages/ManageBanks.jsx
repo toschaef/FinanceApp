@@ -5,7 +5,7 @@ import NavBar from '../components/NavBar';
 import axios from 'axios';
 
 const ManageBanks = () => {
-  const { email, bankNames, hasItem, dispatch } = useContext(Context);
+  const { email, bankNames, hasItem, dispatch, refreshContext } = useContext(Context);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,6 +24,7 @@ const ManageBanks = () => {
           hasItem: !!newBankNames.length,
         }
       });
+      refreshContext(email);
     } catch (err) {
       console.log('Error deleting item', err);
       setError('Error deleting item');

@@ -4,7 +4,7 @@ import Context from '../Context';
 import axios from 'axios';
 
 const LinkButton = ({ text }) => {
-  const { email, bankNames, dispatch } = useContext(Context);
+  const { email, bankNames, dispatch, refreshContext } = useContext(Context);
 
   const handleClick = useLinkConnect({
     onSuccess: async (publicToken, meta) => {
@@ -20,6 +20,7 @@ const LinkButton = ({ text }) => {
             bankNames: [...bankNames, res.data.bank_name],
           }
         });
+        refreshContext(email);
       } catch (err) {
         console.error('Error setting access token', err);
       }

@@ -15,7 +15,7 @@ const register = async (req, res) => {
 
   try {
     const [rows] = await db.promise().execute(
-      'SELECT email FROM users WHERE email = ?',
+      'select email from users where email = ?',
       [email]
     );
 
@@ -32,7 +32,8 @@ const register = async (req, res) => {
       from: process.env.EMAIL_ADDRESS,
       to: email,
       subject: 'Your Verification Code',
-      html: `<h1>${code}</h1>`,
+      html: `<h1>Your verification code:</h1>
+             <h3>${code}</h3>`,
     });
 
     res.json({ message: 'Verification email sent' });
@@ -50,7 +51,7 @@ const verifyAndRegister = async (req, res) => {
     const password = await redis.get(key);
     if (!password) return res.status(400).json({ message: 'Invalid or expired code' });
 
-    await db.promise().execute('INSERT INTO users (email, password) VALUES (?, ?)', [email, password]);
+    await db.promise().execute('insert into users (email, password) values (?, ?)', [email, password]);
     await redis.del(key);
 
     res.json({ message: 'User registered successfully' });
@@ -65,10 +66,10 @@ const login = async (req, res) => {
 
   try {
     const [rows] = await db.promise().execute(
-      `SELECT u.id, u.email, u.password, i.bank_name 
-       FROM users u 
-       LEFT JOIN items i ON u.id = i.user_id 
-       WHERE u.email = ?`,
+      `select u.id, u.email, u.password, i.bank_name 
+       from users u 
+       left join items i on u.id = i.user_id 
+       where u.email = ?`,
       [email]
     );
 
@@ -110,7 +111,7 @@ const verifyCode = async (req, res) => {
     if (!encryptedPassword) {
       return res.status(400).json({ error: 'Invalid or expired code' });
     }
-    res.json({ isEqual: true });
+    return res.sendStatus(200);
   } catch (err) {
     console.error('Verification error:', err);
     res.status(500).json({ error: 'Verification error' });

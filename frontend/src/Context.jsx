@@ -1,7 +1,9 @@
 import React, { createContext, useReducer } from "react";
+import axios from "axios";
 
 const initialState = {
   email: null,
+  emailVerified: false,
   loggedIn: false,
   hasItem: false,
   state_transactions: null,
@@ -32,8 +34,26 @@ const Context = createContext();
 const Provider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  const refreshContext = async (emailInput) => {
+    try {
+      const res = await axios.get(`/api/all`, {
+        params: { email: emailInput },
+      });
+      dispatch({
+        type: "SET_STATE",
+        state: {
+          state_transactions: res.data.transactions,
+          state_investments: res.data.investments,
+          state_accounts: res.data.accounts,
+        },
+      });
+    } catch (err) {
+      console.error('Error refreshing context', err);
+    }
+  };
+
   return (
-    <Context.Provider value={{ ...state, dispatch }}>
+    <Context.Provider value={{ ...state, dispatch, refreshContext }}>
       {children}
     </Context.Provider>
   );

@@ -15,22 +15,26 @@ const VerifyEmail = ({ path }) => {
     setError('');
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/verify-and-register', {
+      const res = await axios.post('/api/verify-and-register', {
         email,
         code: verificationCode,
       });
-      dispatch({
-        type: "SET_STATE",
-        state: {
-          emailVerified: true,
-        },
-      });
-      setLoading(false);
-      navigate(`/${path}`); // redirects to input path
+      if (res.status === 200) {
+        dispatch({
+          type: "SET_STATE",
+          state: {
+            emailVerified: true,
+          },
+        });
+      }
+      if (path !== "") {
+        navigate(`/${path}`); // redirects to input path
+      }
     } catch (err) {
-      setLoading(false);
       console.log("Error logging in", err);
       setError(err);
+    } finally {
+      setLoading(false);
     }
   };
 
