@@ -10,6 +10,7 @@ const initialState = {
   state_investments: null,
   state_accounts: null,
   bankNames: [],
+  graphData: [],
 };
 
 const reducer = (state, action) => {

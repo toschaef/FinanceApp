@@ -65,7 +65,9 @@ const Login = () => {
 
   return (
     <div>
+      <div>
       <h2>Login</h2>
+      {error && <p>{error}</p>}
       <form onSubmit={handleLogin}>
         <label>email:</label>
         <input
@@ -88,8 +90,19 @@ const Login = () => {
           {loading?"Logging in...":"Login"}
         </button>
       </form>
-      <button onClick={() => navigate("/register")}>Register</button>
-      {error && <p>{error}</p>}
+        <div>
+          <button
+            onClick={() => navigate("/register")}
+          >
+            No account? Create one
+          </button>
+          {/* <button
+            onClick={() => navigate("/forgot")}
+          >
+            Forgot password
+          </button> */}
+        </div>
+      </div>
     </div>
   );
   

@@ -11,6 +11,7 @@ const VerifyEmail = ({ path }) => {
   const navigate = useNavigate();
 
   const handleVerification = async (e) => {
+    if (!email) navigate('/');
     setLoading(true);
     setError('');
     e.preventDefault();
@@ -27,9 +28,7 @@ const VerifyEmail = ({ path }) => {
           },
         });
       }
-      if (path !== "") {
-        navigate(`/${path}`); // redirects to input path
-      }
+      navigate(`/${path}`); // redirects to input path
     } catch (err) {
       console.log("Error logging in", err);
       setError(err);

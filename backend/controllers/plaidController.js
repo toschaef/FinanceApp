@@ -228,7 +228,6 @@ const getInvestments = async (req, res) => {
 
 const getAll = async (req, res) => {
   const email = req.query.email;
-  console.log(email);
   try {
     const [transactions, investments, accounts] = await Promise.all([
       fetchTransactions(email),

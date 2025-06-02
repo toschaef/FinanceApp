@@ -6,7 +6,7 @@ import NavBar from '../components/NavBar';
 import Transactions from '../components/Transactions';
 import Investments from '../components/Investments';
 import Accounts from '../components/Accounts';
-// import Graph from '../components/Graph';
+import AreaGraph from '../components/AreaGraph'
 
 const Home = () => {
   const { hasItem, dispatch } = useContext(Context);
@@ -21,43 +21,62 @@ const Home = () => {
   }
   
   // this is temporary!!
-  const renderT = () => {
-    setT(true);
-  }
-  const renderI = () => {
-    setI(true);
-  }
-  const renderA = () => {
-    setA(true);
-  }
 
   return (
     <div>
       {/* todo: homepage */}
       <h1>Home Page</h1>
       <NavBar />
-      <button onClick={handleLogout}>Logout</button>
-      {!hasItem ?
-      <>
-        <h3>No account linked. Link one?</h3>
-        <LinkButton text={"Link Bank"} />
-      </>
-      :
-      <>
-        {/* <div style={{ width: '100%', height: '400px' }}>
-          <Graph />
-        </div> */}
-        {!t &&
-        <button onClick={renderT}>Render Transactions</button>}
-        {t && <Transactions />}
-        {!i &&
-        <button onClick={renderI}>Render Investments</button>}
-        {i && <Investments />}
-        {!a &&
-        <button onClick={renderA}>Render Accounts</button>}
-        {a && <Accounts />}
-      </>
-      }
+      
+      <header>
+        <button
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
+      </header>
+      <main>
+        {!hasItem ?
+        <>
+          <h2>No account linked. Link one?</h2>
+          <LinkButton text="Link Bank" />
+        </>
+        :
+        <>
+          <div style={{ width: "100%", height: 300 }}>
+            <AreaGraph />
+          </div>
+          {/* <div>
+              {!t && (
+                <button
+                  onClick={() => setT(true)}
+                >
+                  Show Transactions
+                </button>
+              )}
+              {!i && (
+                <button
+                  onClick={() => setI(true)}
+                >
+                  Show Investments
+                </button>
+              )}
+              {!a && (
+                <button
+                  onClick={() => setA(true)}
+                >
+                  Show Accounts
+                </button>
+              )}
+            </div>
+            <div>
+              {t  && <Transactions />}
+              {i  && <Investments  />}
+              {a && <Accounts     />}
+            </div> */}
+        </>
+        }
+      </main>
     </div>
   );
 };
