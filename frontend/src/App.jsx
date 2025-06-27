@@ -8,6 +8,8 @@ import Register from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
 import Transactions from './components/Transactions';
 import Investments from './components/Investments';
+import Accounts from './components/Accounts';
+import Assets from './components/Assets';
 
 const App = () => {
   const { loggedIn } = useContext(Context);
@@ -27,8 +29,10 @@ const App = () => {
           <>
             <Route path='/' element={<Home />} />
             <Route path='/manage-banks' element={<ManageBanks />} />
+            <Route path='/accounts' element={<Accounts />} />
             <Route path='/transactions' element={<Transactions />} />
             <Route path='/investments' element={<Investments />} />
+            <Route path='/assets' element={<Assets />} />
             <Route path='*' element={<Navigate to='/home' />} />
           </>
         )}

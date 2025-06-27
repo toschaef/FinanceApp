@@ -22,7 +22,7 @@ CREATE TABLE accounts (
   item_id VARCHAR(255) NOT NULL,
   account_id VARCHAR(255) NOT NULL,
   account_balance DECIMAL(18,2) NOT NULL,
-  iso_currency_code VARCHAR(50),
+  iso_currency_code VARCHAR(10) DEFAULT 'USD',
   account_name VARCHAR(255) NOT NULL,
   account_type VARCHAR(50) NOT NULL,
   account_subtype VARCHAR(50) NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE transactions (
   account_id VARCHAR(255) NOT NULL,
   amount DECIMAL(18,2) NOT NULL,
   transaction_name VARCHAR(255) NOT NULL,
-  iso_currency_code VARCHAR(50),
+  iso_currency_code VARCHAR(10) DEFAULT 'USD',
   transaction_date DATE NOT NULL,
   account_name VARCHAR(255) NOT NULL,
   payment_channel VARCHAR(50) NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE investments (
   quantity DECIMAL(18,4) NOT NULL,
   institution_price DECIMAL(18,4) NOT NULL,
   institution_value DECIMAL(18,2),
-  iso_currency_code VARCHAR(10),
+  iso_currency_code VARCHAR(10) DEFAULT 'USD',
   investment_name VARCHAR(255) NOT NULL,
   ticker_symbol VARCHAR(20),
   institution_name VARCHAR(255) NOT NULL,
@@ -77,6 +77,19 @@ CREATE TABLE investment_transactions (
   amount DECIMAL(18, 2) NOT NULL,
   price DECIMAL(18, 4),
   quantity DECIMAL(18, 4),
-  iso_currency_code VARCHAR(10),
+  iso_currency_code VARCHAR(10) DEFAULT 'USD',
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE assets (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  estimated_value DECIMAL(18, 2) NOT NULL,
+  quantity INT NOT NULL DEFAULT 1,
+  amount DECIMAL(18, 2) NOT NULL,
+  asset_name VARCHAR(255) NOT NULL,
+  acquisition_date DATE,
+  iso_currency_code VARCHAR(10) DEFAULT 'USD',
+  bio TEXT,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );

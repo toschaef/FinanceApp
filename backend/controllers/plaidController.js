@@ -1,7 +1,7 @@
 const db = require('../config/db');
 const client = require('../config/plaid');
 require('dotenv').config();
-const { fetchAccounts, fetchTransactions, fetchInvestments } = require('./queries');
+const { fetchAccounts, fetchTransactions, fetchInvestments, fetchAssets, postAsset, deleteAsset } = require('./queries');
 
 const createLinkToken = async (req, res) => {
   try {
@@ -202,7 +202,7 @@ const getAccounts = async (req, res) => {
     res.status(200).json({ accounts });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Failed to fetch accounts' });
+    res.status(500).json({ error: 'Failed to fetch accounts' });
   }
 }
 
@@ -212,7 +212,7 @@ const getTransactions = async (req, res) => {
     res.status(200).json({ transactions });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Failed to fetch transactions' });
+    res.status(500).json({ error: 'Failed to fetch transactions' });
   }
 }
 
@@ -222,51 +222,117 @@ const getInvestments = async (req, res) => {
     res.status(200).json({ investments });
   } catch (err) {
     console.error('Error fetching investments:', err);
-    res.status(500).json({ message: 'Failed to fetch investments' });
+    res.status(500).json({ error: 'Failed to fetch investments' });
   }
 };
+
+const getAssets = async (req, res) => {
+  try {
+    const assets = await fetchAssets(req.query.email);
+    res.status(200).json({ assets })
+  } catch (err) {
+    console.error('Error fetching assets:', err);
+    res.status(500).json({ error: 'Failed to fetch investments' })
+  }
+}
+
+const addAsset = async (req, res) => {
+  try {
+    await postAsset(req.body);
+    res.status(201).json({ message: 'Asset created successfully' });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'Internal server error'});
+  }
+}
+
+const removeAsset = async (req, res) => {
+  try {
+    const { email, id } = req.query;
+    await deleteAsset({ email, id });
+    res.sendStatus(204);
+  } catch (err) {
+    console.error('Error deleting asset', err);
+    res.status(500).json({ error: 'Internal Server Error'})
+  }
+}
 
 const getAll = async (req, res) => {
   const email = req.query.email;
   try {
-    const [transactions, investments, accounts] = await Promise.all([
+    const [transactions, investments, accounts, assets] = await Promise.all([
       fetchTransactions(email),
       fetchInvestments(email),
-      fetchAccounts(email)
+      fetchAccounts(email),
+      fetchAssets(email),
     ]);
 
-    res.status(200).json({ transactions, investments, accounts });
+    res.status(200).json({ transactions, investments, accounts, assets });
   } catch (err) {
     console.error('Error fetching all', err);
-    res.status(500).json({ message: 'Failed to fetch data' });
+    res.status(500).json({ error: 'Failed to fetch data' });
   }
 }
 
 const deleteItem = async (req, res) => {
   const { bankName, email } = req.query;
+
   if (!bankName || !email) {
-    console.log("tried to delete bank but email or bankname is null")
     return res.status(400).json({ error: "bankName and email are required" });
   }
-  try {
-    await db.promise().execute(
-      `with item as (
-        select i.item_id 
-        from items i 
-        join users u on i.user_id = u.id 
-        where i.bank_name = ? and u.email = ?
-        limit 1
-      )
-      delete transactions, accounts, items 
-      from transactions 
-      join accounts on transactions.item_id = accounts.item_id 
-      join items on accounts.item_id = items.item_id 
-      where transactions.item_id in (select item_id from item)`,
-      [bankName, email]
-    );
 
-    return res.status(200).json({ message: "Item deleted successfully" });
+  const conn = db.promise();
+
+  try {
+    await conn.query("start transaction");
+    // investment_transactions
+    await conn.execute(`
+      delete it
+      from investment_transactions it
+      join items i on it.item_id = i.item_id
+      join users u on i.user_id = u.id
+      where i.bank_name = ? and u.email = ?;
+    `, [bankName, email]);
+
+    // investments
+    await conn.execute(`
+      delete inv
+      from investments inv
+      join items i on inv.item_id = i.item_id
+      join users u on i.user_id = u.id
+      where i.bank_name = ? and u.email = ?;
+    `, [bankName, email]);
+
+    // transactions
+    await conn.execute(`
+      delete t
+      from transactions t
+      join items i on t.item_id = i.item_id
+      join users u on i.user_id = u.id
+      where i.bank_name = ? and u.email = ?;
+    `, [bankName, email]);
+
+    // accounts
+    await conn.execute(`
+      delete a
+      from accounts a
+      join items i on a.item_id = i.item_id
+      join users u on i.user_id = u.id
+      where i.bank_name = ? and u.email = ?;
+    `, [bankName, email]);
+
+    // item
+    await conn.execute(`
+      delete i
+      from items i
+      join users u on i.user_id = u.id
+      where i.bank_name = ? and u.email = ?;
+    `, [bankName, email]);
+
+    await conn.query("commit");
+    return res.sendStatus(204);
   } catch (err) {
+    await conn.query("rollback");
     console.log('Error deleting item', err);
     return res.status(500).json({ error: "Internal server error" });
   }
@@ -278,6 +344,9 @@ module.exports = {
   getAccounts,
   getTransactions,
   getInvestments,
+  getAssets,
+  addAsset,
+  removeAsset,
   getAll,
   deleteItem,
 };

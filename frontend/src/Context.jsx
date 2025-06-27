@@ -6,9 +6,10 @@ const initialState = {
   emailVerified: false,
   loggedIn: false,
   hasItem: false,
-  state_transactions: null,
-  state_investments: null,
-  state_accounts: null,
+  state_transactions: [],
+  state_investments: [],
+  state_accounts: [],
+  state_assets: [],
   bankNames: [],
   graphData: [],
 };
@@ -46,6 +47,7 @@ const Provider = ({ children }) => {
           state_transactions: res.data.transactions,
           state_investments: res.data.investments,
           state_accounts: res.data.accounts,
+          state_assets: res.data.assets,
         },
       });
     } catch (err) {
@@ -53,8 +55,22 @@ const Provider = ({ children }) => {
     }
   };
 
+  const refreshProduct = async (prod, email) => {
+    try {
+      const key = `state_${prod}`;
+      const res = await axios.get(`/api/${prod}?email=${email}`);
+      dispatch({
+        type: "SET_STATE",
+        state: { [key]: res.data[prod] }
+      });
+      return res.data[prod]
+    } catch (err) {
+      console.error('Error refreshing product', err);
+    }
+  }
+
   return (
-    <Context.Provider value={{ ...state, dispatch, refreshContext }}>
+    <Context.Provider value={{ ...state, dispatch, refreshContext, refreshProduct }}>
       {children}
     </Context.Provider>
   );

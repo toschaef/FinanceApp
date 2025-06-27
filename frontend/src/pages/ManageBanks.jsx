@@ -36,21 +36,19 @@ const ManageBanks = () => {
   return (
     <div>
       <NavBar />
-      <h1>Manage Your Banks</h1>
+      {hasItem? <h1>Linked Banks</h1> : <h1>Link bank via plaid</h1>}
       {loading && <p>loading...</p>}
       {error && <p>{error}</p>}
       <ul>
-        {hasItem ? (
+        {hasItem &&
           bankNames.map((name) => (
             <li key={name}>
               <h1>{name}</h1>
               <button onClick={() => handleDelete(name)}>Remove Bank</button>
             </li>
-          ))
-        ) : (
-          <p>No banks linked yet.</p>
-        )}
+          ))}
       </ul>
+      <br />
       <LinkButton text={"Add Bank"} />
     </div>
   );

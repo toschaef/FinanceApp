@@ -8,7 +8,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { dispatch } = useContext(Context);
+  const { dispatch, refreshProduct } = useContext(Context);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -25,11 +25,10 @@ const Login = () => {
       const user = loginRes.data.user;
 
       if (user.hasItem) {
-        console.log('logged in with item');
         const res = await axios.get(`/api/all`, {
           params: { email: emailInput },
         });
-
+        console.log('response', res.data);
         const data = res.data;
 
         dispatch({
@@ -42,10 +41,11 @@ const Login = () => {
             state_transactions: data.transactions,
             state_investments: data.investments,
             state_accounts: data.accounts,
+            state_assets: data.assets,
           },
         });
       } else {
-        console.log('logged in no item');
+        refreshProduct('assets', user.email);
         dispatch({
           type: "SET_STATE",
           state: {

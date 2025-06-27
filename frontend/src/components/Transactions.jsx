@@ -1,27 +1,17 @@
 import { useEffect, useState, useContext } from "react";
 import Context from '../Context';
 import formatCurrency from '../util/formatCurrency';
-import axios from 'axios';
+import NavBar from "./NavBar";
 
 const Transactions = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const { email, state_transactions, dispatch } = useContext(Context);
-
-  const fetchTransactions = async () => {
-    const res = await axios.get(`/api/transactions?email=${email}`);
-
-    console.log("Transaction data", res.data);
-    
-    return res.data.transactions;
-  };
+  const { state_transactions } = useContext(Context);
+  const [transactions, setTransactions] = useState('');
 
   const groupByBankAndAccount = (transactions) => {
     const mappedTransactions = transactions.map((t) => ({
-      bank_name: t.institution_name || "institution name not found",
+      bank_name: t.institution_name,
       account_id: t.account_id,
-      account_name: t.account_name || "account name not found",
+      account_name: t.account_name,
       name: t.transaction_name,
       amount: t.amount,
       iso_currency_code: t.iso_currency_code,
@@ -41,38 +31,14 @@ const Transactions = () => {
   };
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const transactionData = await fetchTransactions();
-        dispatch({
-          type: "SET_STATE",
-          state: { state_transactions: transactionData },
-        });
-        const grouped = groupByBankAndAccount(transactionData);
-        setTransactions(grouped);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load transactions");
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (state_transactions) {
-      setTransactions(groupByBankAndAccount(state_transactions));
-    } else {
-      load();
-    }
+    setTransactions(groupByBankAndAccount(state_transactions));
   }, []);
 
   return (
     <div>
+      <NavBar />
       <h1>Transactions</h1>
-        {loading ? (
-          <p>Loading transactions...</p>
-        ) : error ? (
-          <p>{error}</p>
-        ) : Object.keys(transactions).length === 0 ? (
+        {Object.keys(transactions).length === 0 ? (
           <p>No transactions found.</p>
         ) : (
           <>

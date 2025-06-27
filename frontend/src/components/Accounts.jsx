@@ -1,28 +1,18 @@
 import { useEffect, useState, useContext } from "react";
 import Context from '../Context';
 import formatCurrency from '../util/formatCurrency';
-import axios from 'axios';
+import NavBar from "./NavBar";
 
 const Accounts = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [accounts, setAccounts] = useState([]);
-  const { email, state_accounts, dispatch } = useContext(Context);
-
-  const fetchAccounts = async () => {
-    const res = await axios.get(`/api/accounts?email=${email}`);
-
-    console.log("Account data", res.data);
-    
-    return res.data.accounts;
-  };
+  const { state_accounts, dispatch } = useContext(Context);
+  const [accounts, setAccounts] = useState('');
 
   const groupByBank = (accounts) => {
     const mappedAccounts = accounts.map((a) => ({
-      institution_name: a.institution_name || "institution name not found",
-      account_name: a.account_name || "account name not found",
+      institution_name: a.institution_name,
+      account_name: a.account_name,
       balance: a.account_balance,
-      iso_currency_code: a.iso_currency_code || 'USD',
+      iso_currency_code: a.iso_currency_code,
     }));
 
     const grouped = {};
@@ -36,38 +26,14 @@ const Accounts = () => {
   };
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const accountData = await fetchAccounts();
-        dispatch({
-          type: "SET_STATE",
-          state: { state_accounts: accountData },
-        });
-        const grouped = groupByBank(accountData);
-        setAccounts(grouped);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load accounts');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (state_accounts) {
-      setAccounts(groupByBank(state_accounts));
-    } else {
-      load();
-    }
+    setAccounts(groupByBank(state_accounts));
   }, []);
 
   return (
     <div>
+      <NavBar />
       <h1>Accounts</h1>
-      {loading ? (
-        <p>Loading accounts...</p>
-      ) : error ? (
-        <p>{error}</p>
-      ) : Object.keys(accounts).length === 0 ? (
+      {Object.keys(accounts).length === 0 ? (
         <p>No accounts found.</p>
       ) : (
         <>
