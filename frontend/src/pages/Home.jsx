@@ -35,7 +35,7 @@ const Home = () => {
       <main>
         {userHasNothing()?
         <>
-          <h2>No account linked. Link one?</h2>
+          <h2>No accounts linked. Link one?</h2>
           <LinkButton text="Link Bank" />
         </>
         :

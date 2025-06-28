@@ -4,9 +4,9 @@ const transporter = require('../config/email');
 const bcrypt = require('bcrypt');
 const generateCode = require('../helpers/codeGenerator');
 
-// send verification code to user
-const register = async (req, res) => {
-  const { email, password } = req.body;
+// send verification code to user and hash password
+const startRegistration = async (req, res) => {
+  const { email, password, register } = req.body;
 
   const encrypt = async (pass) => {
     const hashedPass = await bcrypt.hash(pass, 10);
@@ -19,7 +19,7 @@ const register = async (req, res) => {
       [email]
     );
 
-    if (rows.length !== 0) {
+    if (rows.length !== 0 && register) {
       return res.status(409).json({ error: 'Account exists with email' });
     }
 
@@ -42,25 +42,30 @@ const register = async (req, res) => {
     res.status(500).json({ error: 'Could not initiate verification' });
   }
 };
-// register user in db once code is verified
+// register and/or verify email code
 const verifyAndRegister = async (req, res) => {
-  const { email, code } = req.body;
+  const { email, code, register } = req.body;
   const key = `verify:${email}:${code}`;
 
   try {
     const password = await redis.get(key);
     if (!password) return res.status(400).json({ message: 'Invalid or expired code' });
-
-    await db.promise().execute('insert into users (email, password) values (?, ?)', [email, password]);
+    if (Boolean(register)) {
+      console.log('Registering new user', {email, password});
+      await db.promise().execute(
+        'insert into users (email, password) values (?, ?)',
+        [email, password]
+      );
+    }
     await redis.del(key);
-
-    res.json({ message: 'User registered successfully' });
+    const status = register? 201 : 204;
+    res.sendStatus(status);
   } catch (err) {
     console.error('Verification error:', err);
-    res.status(500).json({ error: 'Registration failed' });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
+// login and send array of bank names
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -81,7 +86,7 @@ const login = async (req, res) => {
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      return res.status(401).json({ error: 'Invalid password' });
+      return res.status(401).json({ error: 'Invalid Username or Password' });
     }
 
     const rawbankNames = rows.map(row => row.bank_name);
@@ -89,7 +94,6 @@ const login = async (req, res) => {
     const hasItem = !!bankNames.length;
 
     res.status(200).json({
-      message: 'Login successful',
       user: {
         email: user.email,
         hasItem,
@@ -98,29 +102,34 @@ const login = async (req, res) => {
     });
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ error: 'Database error' });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-const verifyCode = async (req, res) => {
-  const { code, email } = req.body;
-  const key = `verify:${email}:${code}`;
+const changePassword = async (req, res) => {
+  const { email, pass } = req.body.perams;
+  
+  const encrypt = async (pass) => {
+    const hashedPass = await bcrypt.hash(pass, 10);
+    return hashedPass;
+  }
 
-  try {
-    const encryptedPassword = await redis.get(key);
-    if (!encryptedPassword) {
-      return res.status(400).json({ error: 'Invalid or expired code' });
-    }
-    return res.sendStatus(200);
+  try { 
+    const encryptedPass = await encrypt(pass);
+    await db.promise().execute(
+      `update users
+       set password = ?
+       where email = ?`, [encryptedPass, email]);
+    res.sendStatus(204);
   } catch (err) {
-    console.error('Verification error:', err);
-    res.status(500).json({ error: 'Verification error' });
+    console.error('Error updating password', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
 module.exports = {
-  register,
+  startRegistration,
   verifyAndRegister,
   login,
-  verifyCode,
+  changePassword,
 };

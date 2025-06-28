@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Context from '../Context';
 
-const VerifyEmail = ({ path }) => {
+const VerifyEmail = ({ path, register }) => {
   const [verificationCode, setVerificationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -11,16 +11,17 @@ const VerifyEmail = ({ path }) => {
   const navigate = useNavigate();
 
   const handleVerification = async (e) => {
-    if (!email) navigate('/');
     setLoading(true);
     setError('');
     e.preventDefault();
     try {
-      const res = await axios.post('/api/verify-and-register', {
+      console.log('email', email);
+      const res = await axios.post('/api/verify-email', {
         email,
         code: verificationCode,
+        register,
       });
-      if (res.status === 200) {
+      if (res.status === 204) {
         dispatch({
           type: "SET_STATE",
           state: {
@@ -28,7 +29,13 @@ const VerifyEmail = ({ path }) => {
           },
         });
       }
-      navigate(`/${path}`); // redirects to input path
+
+      // path: 'x' === no redirect
+      if (!path && path !== 'x') {
+        navigate('/'); // redirect to input path
+      } else if (path !== 'x') {
+        navigate(`/${path}`); // redirect to input path
+      }
     } catch (err) {
       console.log("Error logging in", err);
       setError(err);

@@ -56,8 +56,8 @@ const Login = () => {
         });
       }
     } catch (err) {
-      console.log("error:", err);
-      const error = err.response?.data?.error || err.response?.data?.message || "network error";
+      console.error("error:", err);
+      const error = err.response.data.error || "network error";
       setError(error);
       setLoading(false);
     }
@@ -96,16 +96,15 @@ const Login = () => {
           >
             No account? Create one
           </button>
-          {/* <button
+          <button
             onClick={() => navigate("/forgot")}
           >
             Forgot password
-          </button> */}
+          </button>
         </div>
       </div>
     </div>
   );
-  
 };
 
 export default Login;

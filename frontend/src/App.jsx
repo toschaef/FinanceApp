@@ -5,11 +5,11 @@ import Home from './pages/Home';
 import ManageBanks from './pages/ManageBanks';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import VerifyEmail from './pages/VerifyEmail';
 import Transactions from './components/Transactions';
 import Investments from './components/Investments';
 import Accounts from './components/Accounts';
 import Assets from './components/Assets';
+import ForgotPassword from './pages/ForgotPassword';
 
 const App = () => {
   const { loggedIn } = useContext(Context);
@@ -21,8 +21,7 @@ const App = () => {
           <>
             <Route path='/' element={<Login />} />
             <Route path='/register' element={<Register />} />
-            <Route path='/verify-email' element={<VerifyEmail path='' />} />
-            {/* <Route path='/forgot-email' element={<ForgotEmail />} /> */}
+            <Route path='/forgot-email' element={<ForgotPassword />} />
             <Route path='*' element={<Navigate to='/' />} />
           </>
         ) : (

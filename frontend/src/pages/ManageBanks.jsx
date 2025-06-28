@@ -13,7 +13,10 @@ const ManageBanks = () => {
     setLoading(true);
     console.log(`Deleting Item with name : ${bankName}`);
     try {
-      await axios.delete(`http://localhost:5000/api/delete-item?bankName=${bankName}&email=${email}`);
+      await axios.delete('/api/delete-item', {
+        bankName,
+        email
+      });
 
       const newBankNames = bankNames.filter((e) => e !== bankName);
 

@@ -2,14 +2,16 @@ import { useState, useContext, useEffect, useMemo } from "react";
 import { subDays, eachDayOfInterval, eachHourOfInterval, eachMinuteOfInterval, formatISO } from "date-fns";
 import Context from "../Context";
 
-const ToggleGraph = () => {
+const FilterGraph = () => {
   const { state_accounts, state_transactions, state_investments, state_assets, dispatch, hasItem } = useContext(Context);
+
   const [advanced, setAdvanced] = useState(false);
   const [formData, setFormData] = useState({ 
     span: "30", 
     includeInv: true, 
     accounts: new Set(state_accounts.map(a => a.account_id)), 
-    assets: hasItem? new Set() : new Set(state_assets.map(a => a.id)) }); // if asset but no item, start with assets checked
+    assets: hasItem? new Set() : new Set(state_assets.map(a => a.id)) // if asset but no item, start with assets checked
+  });
 
   const toggleAdv = () => {
     setAdvanced(a => !a);
@@ -46,18 +48,12 @@ const ToggleGraph = () => {
     const keepAsset = (id) => assets.has(id);
 
     // collect each relevant date
-    const tDates = state_transactions.map(
-      t => +new Date(t.transaction_date)
-    );
-    const iDates = state_investments.flatMap(inv =>
-      inv.transactions.map(txn => +new Date(txn.transaction_date))
-    );
-    const aDates = state_assets.map(
-      a => +new Date(a.acquisition_date)
-    );
+    const dateNums = (arr, key) => arr.map(item => +new Date(item[key]));
+    const tDates = dateNums(state_transactions, 'transaction_date');
+    const iDates = state_investments.flatMap(inv => dateNums(inv.transactions, 'transaction_date'));
+    const aDates = dateNums(state_assets, 'acquisition_date');
 
     // get date window
-    const spanNum = span === 'x'? null : Number(span);
     const end = new Date();
     const start =
       span === 'x' // if all time, pick oldest transaction/inv transaction date
@@ -66,14 +62,18 @@ const ToggleGraph = () => {
 
     let intervalFunc, dateKey, step;
 
-    if (spanNum !== null && spanNum <= 1) { // 1 day
+    if (span <= 1) { // 1 day
       intervalFunc = eachMinuteOfInterval;
       dateKey = (d) => formatISO(d).slice(0, 16);
       step = { minutes: 15 };
-    } else if (spanNum !== null && spanNum <= 7) { // < 1 week
+    } else if (span < 7) { // < 7 days
       intervalFunc = eachHourOfInterval;
       dateKey = (d) => formatISO(d).slice(0, 13);
       step = { hours: 1 };
+    } else if (span <= 45) { // <= 45 days
+      intervalFunc = eachHourOfInterval;
+      dateKey = (d) => formatISO(d).slice(0, 13);
+      step = { hours: 12 };
     } else { // > 1 week
       intervalFunc = eachDayOfInterval;
       dateKey = (d) => formatISO(d, { representation: "date" });
@@ -86,11 +86,9 @@ const ToggleGraph = () => {
       dates[key] = { date: key, change: 0 };
     });
 
-
     state_transactions.forEach(t => {
       if (!keepAccount(t.account_id)) return;
       const key = dateKey(new Date(t.transaction_date));
-      console.log('added transaction');
       dates[key] && (dates[key].change += Number(t.amount));
     });
 
@@ -126,9 +124,9 @@ const ToggleGraph = () => {
     });
 
     let running = offsetBeforeWindow;
-    sorted.forEach(p => {
-      running += p.change;
-      p.balance = running;
+    sorted.forEach(d => {
+      running += d.change;
+      d.balance = running;
     });
 
     const actual = state_accounts
@@ -139,10 +137,13 @@ const ToggleGraph = () => {
         .reduce((sum, a) => sum + Number(a.amount), 0);
 
     const delta = actual - running;
-    sorted.forEach(p => {
+    const color = (balance) => Number(balance) > 0? 'g':'r';
+
+    // fix offset + add color
+    sorted.forEach((p) => {
       p.balance += delta;
+      p.color = Number(p.balance) < 0 ? 'r' : 'g';
     });
-    
     return sorted;
   }, [formData, state_transactions, state_investments, state_accounts, state_assets]);
 
@@ -212,4 +213,4 @@ const ToggleGraph = () => {
   );
 };
 
-export default ToggleGraph;
+export default FilterGraph;

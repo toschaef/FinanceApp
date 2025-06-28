@@ -1,22 +1,58 @@
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts';
 import { useContext, useMemo } from 'react';
 import dayjs from 'dayjs';
 import Context from '../Context';
-import AreaToggle from './AreaToggle';
+import FilterGraph from './AreaFilter';
 
 const AreaGraph = () => {
   const { graphData } = useContext(Context);
-  const graphColor = useMemo(() => {
-    if (graphData.length === 0) {
-      return '#12d900'
-    }
-    if (graphData[graphData.length - 1].balance < 0) {
-      return ['#bd0000', '#f78b8b'];
-    } else {
-      return ['#12d900', '#95f78b'];
-    }
+
+  const processedData = () => (
+    graphData.map(d => {
+      if (Number(d.balance == 0)) {
+        return {
+          ...d,
+          greenBalance: 0,
+          redBalance: 0
+        }
+      }
+      return {
+        ...d,
+        greenBalance: d.color == 'g' ? d.balance : null,
+        redBalance: d.color == 'r' ? d.balance : null,
+    }}
+  ));
+
+  const insertZeroCrossings = useMemo(() => {
+    const data = processedData();
+    return data.reduce((acc, curr, i) => {
+      acc.push(curr);
+      const next = data[i+1];
+      if (!next) return acc;
+
+      const a = curr.balance;
+      const b = next.balance;
+
+      // if this and next don't match up
+      if ((a > 0 && b < 0) || (a < 0 && b > 0)) {
+        const t = a / (a - b);
+        const timeA = dayjs(curr.date).valueOf();
+        const timeB = dayjs(next.date).valueOf();
+        const interpolatedTime = timeA + t * (timeB - timeA);
+        const interpolatedDate = dayjs(interpolatedTime).format('YYYY-MM-DD');
+
+        // push date at exactly 0 to make graph pretty
+        acc.push({
+          date: interpolatedDate,
+          greenBalance: 0,
+          redBalance: 0,
+          color: new Set(['g', 'r']),
+        });
+      }
+      return acc;
+    }, []);
   }, [graphData]);
- 
+
   const [yMin, yMax] = useMemo(() => {
     const balances = graphData.map(d => d.balance);
     const dataMin = Math.min(...balances);
@@ -44,7 +80,8 @@ const AreaGraph = () => {
       <AreaChart
         width={500}
         height={300}
-        data={graphData}
+        // graphData with color + 'smoothing'
+        data={insertZeroCrossings}
         margin={{
           top: 5,
           right: 30,
@@ -61,6 +98,7 @@ const AreaGraph = () => {
         <YAxis
           dataKey="balance"
           domain={[yMin, yMax]}
+          tickCount={5}
           tickFormatter={v =>
             v.toLocaleString("en-US", {
               style:    "currency",
@@ -71,25 +109,53 @@ const AreaGraph = () => {
         />
         <Tooltip
           labelFormatter={l => dayjs(l).format("MMMM D, YYYY")}
-          formatter={v => v.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+          formatter={(value, name) => {
+            if ((name == 'greenBalance' || name == 'redBalance') && value !== null) {
+              return [
+                value.toLocaleString("en-US", { style: "currency", currency: "USD" }),
+                'Balance'
+              ];
+            }
+            return [null, null];
+          }}
+        />
+        <ReferenceLine 
+          y={0} 
+          stroke="#000000" 
+          strokeWidth={2}
+          strokeDasharray="none"
         />
         <defs>
-          <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="100%">
-            <stop offset="15%"  stopColor={graphColor[0]} stopOpacity={0.85} />
-            <stop offset="85%" stopColor={graphColor[1]} stopOpacity={0.85}   />
+          <linearGradient id="colorPositive" x1="0" y1="0" x2="0" y2="100%">
+            <stop offset="15%"  stopColor='#12d900' stopOpacity={0.8} />
+            <stop offset="50%" stopColor='#12d900' stopOpacity={0.5}   />
+            <stop offset="85%" stopColor='#12d900' stopOpacity={0.3}   />
+          </linearGradient>
+          <linearGradient id="colorNegative" x1="0" y1="0" x2="0" y2="100%">
+            <stop offset="15%"  stopColor='#bd0000' stopOpacity={0.8} />
+            <stop offset="50%" stopColor='#bd0000' stopOpacity={0.5}   />
+            <stop offset="85%" stopColor='#bd0000' stopOpacity={0.3}   />
           </linearGradient>
         </defs>
         <Area
-          type="natural"
-          dataKey="balance"
-          stroke={graphColor}
-          strokeWidth={2}
+          type="catmullRom"
+          dataKey="greenBalance"
+          stroke="#000000"
+          strokeWidth={1}
           dot={false}
-          fill="url(#colorBalance)"
+          fill="url(#colorPositive)"
+        />
+        <Area
+          type="catmullRom"
+          dataKey="redBalance"
+          stroke="#000000"
+          strokeWidth={1}
+          dot={false}
+          fill="url(#colorNegative)"
         />
       </AreaChart>
     </ResponsiveContainer>
-    <AreaToggle />
+    <FilterGraph />
     </>
   );
 }
