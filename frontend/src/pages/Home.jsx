@@ -40,7 +40,7 @@ const Home = () => {
         </>
         :
         <>
-          <div style={{ width: "100%", height: 300 }}>
+          <div>
             <AreaGraph />
           </div>
         </>

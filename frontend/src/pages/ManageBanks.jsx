@@ -11,12 +11,14 @@ const ManageBanks = () => {
 
   const handleDelete = async (bankName) => {
     setLoading(true);
+    setError('');
     console.log(`Deleting Item with name : ${bankName}`);
     try {
       await axios.delete('/api/delete-item', {
-        bankName,
-        email
-      });
+        params: {
+          bankName,
+          email
+      }});
 
       const newBankNames = bankNames.filter((e) => e !== bankName);
 

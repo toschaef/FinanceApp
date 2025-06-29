@@ -5,15 +5,13 @@ const { fetchAccounts, fetchTransactions, fetchInvestments, fetchAssets, postAss
 
 const createLinkToken = async (req, res) => {
   try {
-    const configs = {
+    const response = await client.linkTokenCreate({
       user: { client_user_id: 'user-id' },
       client_name: 'test plaid app',
       products: (process.env.PLAID_PRODUCTS).split(','),
       country_codes: (process.env.PLAID_COUNTRY_CODES).split(','),
       language: 'en',
-    };
-
-    const response = await client.linkTokenCreate(configs);
+    });
     console.log(`\nNew link token created`);
     res.status(201).json(response.data);
   } catch (err) {

@@ -75,44 +75,43 @@ const AreaGraph = () => {
   }, [graphData]);
 
   return (
-    <>
-    <ResponsiveContainer width="100%" height={300}>
+    <div style={{ width: '90vw', maxWidth: 1000, height: '45vh', maxHeight: 400 }}>
+    <ResponsiveContainer width='100%' height='100%'>
       <AreaChart
-        width={500}
-        height={300}
         // graphData with color + 'smoothing'
         data={insertZeroCrossings}
         margin={{
           top: 5,
-          right: 30,
-          left: 20,
+          right: 10,
+          left: 10,
           bottom: 5,
         }}
       >
-        <CartesianGrid strokeDasharray="3 3" />
+        <CartesianGrid />
         <XAxis 
-          dataKey="date"
-          tickFormatter={d => dayjs(d).format("MMM D")}
-          minTickGap={20} 
+          dataKey='date'
+          tickFormatter={d => dayjs(d).format('MMM D')} 
+          minTickGap={24}
         />
         <YAxis
-          dataKey="balance"
+          allowDecimals={false}
+          dataKey='balance'
+          tickCount={3}
           domain={[yMin, yMax]}
-          tickCount={5}
           tickFormatter={v =>
-            v.toLocaleString("en-US", {
-              style:    "currency",
-              currency: "USD",
-            })
+            v.toLocaleString('en-US', {
+              style:    'currency',
+              currency: 'USD',
+            }).replace('.00', '')
           }
-          width={90}
+          scale='linear'
         />
         <Tooltip
-          labelFormatter={l => dayjs(l).format("MMMM D, YYYY")}
+          labelFormatter={l => dayjs(l).format('MMMM D, YYYY')}
           formatter={(value, name) => {
             if ((name == 'greenBalance' || name == 'redBalance') && value !== null) {
               return [
-                value.toLocaleString("en-US", { style: "currency", currency: "USD" }),
+                value.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
                 'Balance'
               ];
             }
@@ -121,42 +120,46 @@ const AreaGraph = () => {
         />
         <ReferenceLine 
           y={0} 
-          stroke="#000000" 
+          stroke='#000000' 
           strokeWidth={2}
-          strokeDasharray="none"
+          strokeDasharray='none'
         />
         <defs>
-          <linearGradient id="colorPositive" x1="0" y1="0" x2="0" y2="100%">
-            <stop offset="15%"  stopColor='#12d900' stopOpacity={0.8} />
-            <stop offset="50%" stopColor='#12d900' stopOpacity={0.5}   />
-            <stop offset="85%" stopColor='#12d900' stopOpacity={0.3}   />
+          <linearGradient id='colorPositive' x1='0' y1='0' x2='0' y2='100%'>
+            <stop offset='15%'  stopColor='#12d900' stopOpacity={0.8} />
+            <stop offset='50%' stopColor='#12d900' stopOpacity={0.5}   />
+            <stop offset='85%' stopColor='#12d900' stopOpacity={0.3}   />
           </linearGradient>
-          <linearGradient id="colorNegative" x1="0" y1="0" x2="0" y2="100%">
-            <stop offset="15%"  stopColor='#bd0000' stopOpacity={0.8} />
-            <stop offset="50%" stopColor='#bd0000' stopOpacity={0.5}   />
-            <stop offset="85%" stopColor='#bd0000' stopOpacity={0.3}   />
+          <linearGradient id='colorNegative' x1='0' y1='0' x2='0' y2='100%'>
+            <stop offset='15%'  stopColor='#bd0000' stopOpacity={0.8} />
+            <stop offset='50%' stopColor='#bd0000' stopOpacity={0.5}   />
+            <stop offset='85%' stopColor='#bd0000' stopOpacity={0.3}   />
           </linearGradient>
         </defs>
         <Area
-          type="catmullRom"
-          dataKey="greenBalance"
-          stroke="#000000"
-          strokeWidth={1}
+          animationEasing={'ease-out'}
+          animationDuration={750}
+          dataKey='greenBalance'
           dot={false}
-          fill="url(#colorPositive)"
+          fill='url(#colorPositive)'
+          stroke='#000000'
+          strokeWidth={1}
+          type='catmullRom'
         />
         <Area
-          type="catmullRom"
-          dataKey="redBalance"
-          stroke="#000000"
-          strokeWidth={1}
+          animationEasing={'ease-out'}
+          animationDuration={750}
+          dataKey='redBalance'
           dot={false}
-          fill="url(#colorNegative)"
+          fill='url(#colorNegative)'
+          stroke='#000000'
+          strokeWidth={1}
+          type='catmullRom'
         />
       </AreaChart>
     </ResponsiveContainer>
     <FilterGraph />
-    </>
+    </div>
   );
 }
 

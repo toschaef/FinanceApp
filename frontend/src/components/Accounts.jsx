@@ -4,7 +4,7 @@ import formatCurrency from '../util/formatCurrency';
 import NavBar from "./NavBar";
 
 const Accounts = () => {
-  const { state_accounts, dispatch } = useContext(Context);
+  const { state_accounts } = useContext(Context);
   const [accounts, setAccounts] = useState('');
 
   const groupByBank = (accounts) => {
