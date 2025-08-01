@@ -11,4 +11,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+console.log('Node mailer connected');
+
 module.exports = transporter;

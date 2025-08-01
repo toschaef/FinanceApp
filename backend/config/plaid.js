@@ -18,6 +18,8 @@ try {
   });
   const client = new PlaidApi(configuration);
 
+  console.log('Plaid client connected');
+
   module.exports = client;    
 } catch (err) {
   console.log(`Plaid startup error: ${err.message}`)
