@@ -61,45 +61,45 @@ const ForgotPassword = () => {
 
   return (
     <>
-      {!showVerify?
-        <>
-          <h1>Reset Password</h1>
-          <form onSubmit={handleSubmit}>
-            <label>Email</label>
-            <input
-              type="email"
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              required
-            />
-            <br />
-            <label>
-              New password
-            </label>
-            <input
-              type="password"
-              onChange={(e) => setPass1(e.target.value)}
-              required
-            />
-            <label>
-              Re-enter new password
-            </label>
-            <input
-              type="password"
-              onChange={(e) => setPass2(e.target.value)}
-              required
-            />
-            <button 
-              type='submit' 
-              onClick={handleSubmit}
-            >
-              {loading?'Loading...':'Change'}
-            </button>
-            {error && <p>{error}</p>}
-          </form>
-        </>
-      :
-        !emailVerified && <VerifyEmail path='x' register={false} />
+      {!showVerify
+        ? <>
+            <h1>Reset Password</h1>
+            <form onSubmit={handleSubmit}>
+              <label>Email</label>
+              <input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                required
+              />
+              <br />
+              <label>
+                New password
+              </label>
+              <input
+                type="password"
+                onChange={(e) => setPass1(e.target.value)}
+                required
+              />
+              <label>
+                Re-enter new password
+              </label>
+              <input
+                type="password"
+                onChange={(e) => setPass2(e.target.value)}
+                required
+              />
+              <button 
+                type='submit' 
+                onClick={handleSubmit}
+              >
+                {loading?'Loading...':'Change'}
+              </button>
+              {error && <p>{error}</p>}
+            </form>
+          </>
+        : !emailVerified && 
+            <VerifyEmail path='x' register={false} />
       }
     </>
   );

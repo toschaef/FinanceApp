@@ -3,7 +3,7 @@ import Context from '../Context';
 import axios from 'axios';
 
 const AssetButton = ({ text }) => {
-  const { email, refreshProduct } = useContext(Context);
+  const { email, refreshProduct, user_token } = useContext(Context);
   const [show, setShow] = useState(false);
   const [formData, setFormData] = useState({
     email,
@@ -27,7 +27,7 @@ const AssetButton = ({ text }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/assets', { email, ...formData });
+      await axios.post('/api/assets', { email, user_token, ...formData });
       console.log('asset form submitted', formData);
       setFormData({
         asset_name: '',
@@ -37,7 +37,7 @@ const AssetButton = ({ text }) => {
         iso_currency_code: '',
         description: ''
       });
-      refreshProduct('assets', email);
+      refreshProduct('assets', email, user_token);
     } catch (err) {
       console.error('Error submitting new asset', err);
     } finally {

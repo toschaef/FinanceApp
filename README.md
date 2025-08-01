@@ -3,10 +3,14 @@
 This is a wip finance app with a react frontend and a node backend. It uses Plaid API to fetch user banking information.
 
 ## Features
-- Registration with email verification via NodeMailer
 - Bank linking via Plaid
-- Retrival and display of user transactions + investments
+- Registration with email verification via NodeMailer
+- Session verification via JWT
 - Password incryption via bcrypt
+- Rate Limiting through express-rate-limit
+- Retrival and display of user finances
+- Asset recording and management
+- Dynamic graph of user balances with filter
 
 ## Technologies used
 - react
@@ -16,10 +20,10 @@ This is a wip finance app with a react frontend and a node backend. It uses Plai
 - redis
 - plaid API
 - bcrypt
+- recharts
+- jsonwebtoken
 
 ## Future Features
-- dynamic graph to show useful finance data
 - recurring transaction component
-- tailwind styles
-- stronger server security
-- graph for ui
+- income/paystub component
+- better tailwind styles

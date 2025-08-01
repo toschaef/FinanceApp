@@ -2,11 +2,16 @@ const db = require('../config/db');
 const redis = require('../config/redis');
 const transporter = require('../config/email');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const generateCode = require('../helpers/codeGenerator');
 
-// send verification code to user and hash password
+// send verification code to user and hash password (if registering)
 const startRegistration = async (req, res) => {
-  const { email, password, register } = req.body;
+  const { 
+    email, 
+    password, 
+    register, // if registering block duplicate emails
+  } = req.body;
 
   const encrypt = async (pass) => {
     const hashedPass = await bcrypt.hash(pass, 10);
@@ -38,13 +43,18 @@ const startRegistration = async (req, res) => {
 
     res.json({ message: 'Verification email sent' });
   } catch (err) {
-    console.error('Registration error:', err);
+    console.error(`Registration error: ${err.message}`);
     res.status(500).json({ error: 'Could not initiate verification' });
   }
 };
 // register and/or verify email code
 const verifyAndRegister = async (req, res) => {
-  const { email, code, register } = req.body;
+  const { 
+    email, 
+    code, 
+    register, // if register: register user in db, else skip and verify
+  } = req.body;
+
   const key = `verify:${email}:${code}`;
 
   try {
@@ -61,11 +71,11 @@ const verifyAndRegister = async (req, res) => {
     const status = register? 201 : 204;
     res.sendStatus(status);
   } catch (err) {
-    console.error('Verification error:', err);
+    console.error(`Verification error: ${err.message}`);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-// login and send array of bank names
+// login and respond with array of bank names and jwt
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -93,22 +103,23 @@ const login = async (req, res) => {
     const bankNames = rawbankNames.filter(n => n != null);
     const hasItem = !!bankNames.length;
 
+    const user_token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '3h' })
+
     res.status(200).json({
-      user: {
         email: user.email,
         hasItem,
         bankNames,
-      },
+        user_token,
     });
   } catch (err) {
-    console.error('Login error:', err);
+    console.error(`Login error: ${err.message}`);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
 const changePassword = async (req, res) => {
   const { email, pass } = req.body.perams;
-  
+
   const encrypt = async (pass) => {
     const hashedPass = await bcrypt.hash(pass, 10);
     return hashedPass;
@@ -122,7 +133,7 @@ const changePassword = async (req, res) => {
        where email = ?`, [encryptedPass, email]);
     res.sendStatus(204);
   } catch (err) {
-    console.error('Error updating password', err);
+    console.error(`Error updating password: ${err.message}`);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };

@@ -6,12 +6,12 @@ import NavBar from "./NavBar";
 import AssetButton from "./AssetButton";
 
 const Assets = () => {
-  const { email, state_assets, refreshProduct } = useContext(Context);
+  const { email, state_assets, user_token, refreshProduct } = useContext(Context);
 
   const deleteAsset = async (id) => {
     try {
       await axios.delete('/api/assets', {
-        params: { email, id }
+        params: { email, id, user_token }
       });
       await refreshProduct('assets', email);
     } catch (err) {

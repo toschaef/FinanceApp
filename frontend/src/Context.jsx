@@ -1,17 +1,18 @@
-import React, { createContext, useReducer } from "react";
+import { createContext, useReducer } from "react";
 import axios from "axios";
 
 const initialState = {
+  bankNames: [],
   email: null,
   emailVerified: false,
-  loggedIn: false,
+  graphData: [],
   hasItem: false,
-  state_transactions: [],
-  state_investments: [],
+  loggedIn: false,
   state_accounts: [],
   state_assets: [],
-  bankNames: [],
-  graphData: [],
+  state_investments: [],
+  state_transactions: [],
+  user_token: null,
 };
 
 const reducer = (state, action) => {
@@ -36,10 +37,10 @@ const Context = createContext();
 const Provider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const refreshContext = async (emailInput) => {
+  const refreshContext = async (email, public_token) => {
     try {
       const res = await axios.get(`/api/all`, {
-        params: { email: emailInput },
+        params: { email, public_token },
       });
       dispatch({
         type: "SET_STATE",
@@ -55,10 +56,11 @@ const Provider = ({ children }) => {
     }
   };
 
-  const refreshProduct = async (prod, email) => {
+  const refreshProduct = async (prod, email, token) => {
     try {
       const key = `state_${prod}`;
-      const res = await axios.get(`/api/${prod}?email=${email}`);
+      console.log('user token:', token);
+      const res = await axios.get(`/api/${prod}?email=${email}&user_token=${token}`);
       dispatch({
         type: "SET_STATE",
         state: { [key]: res.data[prod] }

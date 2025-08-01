@@ -137,7 +137,6 @@ const FilterGraph = () => {
         .reduce((sum, a) => sum + Number(a.amount), 0);
 
     const delta = actual - running;
-    const color = (balance) => Number(balance) > 0? 'g':'r';
 
     // fix offset + add color
     sorted.forEach((p) => {
@@ -152,61 +151,83 @@ const FilterGraph = () => {
   }, [graphData, dispatch]);
 
   return (
-    <form>
-      <label>
-        Filter:
-        <select value={formData.span} onChange={handleSelectChange}>
-          <option value="x">All Time</option>
-          <option value="1">1 Day</option>
-          <option value="3">3 Days</option>
-          <option value="7">1 Week</option>
-          <option value="30">1 Month</option>
-          <option value="182">6 Months</option>
-          <option value="365">1 Year</option>
-          <option value="1095">3 Years</option>
-        </select>
-      </label>
-
-      <button type="button" onClick={toggleAdv}>
-        {advanced ? "Hide" : "Advanced"}
-      </button>
-
+    <form className="max-w-2xl min-w-[400px] mx-auto flex flex-col space-y-2 p-4 border border-gray-300 rounded-lg bg-white relative z-10 text-sm">
+      <div className="flex flex-row items-center space-x-4 w-full">
+        <div className="relative w-1/2">
+          <select
+            value={formData.span}
+            onChange={handleSelectChange}
+            className="block w-full appearance-none bg-white border border-gray-300 py-1.5 px-2 pr-6 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all duration-150"
+          >
+            <option value="x">All Time</option>
+            <option value="1">1 Day</option>
+            <option value="3">3 Days</option>
+            <option value="7">1 Week</option>
+            <option value="30">1 Month</option>
+            <option value="182">6 Months</option>
+            <option value="365">1 Year</option>
+            <option value="1095">3 Years</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-gray-700">
+            <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+        
+        <button
+          type="button"
+          onClick={toggleAdv}
+          className="w-1/2 px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+        >
+          {advanced ? "Hide" : "Advanced"}
+        </button>
+      </div>
+    
       {advanced && (
-        <fieldset>
-          <legend>Graph filters</legend>
-
-          <label>
-            <input
-              type="checkbox"
-              name="includeInv"
-              checked={formData.includeInv}
-              onChange={handleProductToggle}
-            />
-            Investments
-          </label>
-
-          {state_accounts.map(acc => (
-            <label key={acc.account_id}>
-              <input
-                type="checkbox"
-                name={acc.account_id}
-                checked={formData.accounts.has(acc.account_id)}
-                onChange={handleAccountToggle}
-              />
-              <span>{acc.account_name}</span>
-            </label>
-          ))}
-          {state_assets.map(ast => (
-            <label key={ast.id}>
-              <input
-                type="checkbox"
-                name={ast.id}
-                checked={formData.assets.has(ast.id)}
-                onChange={handleAssetToggle}
-              />
-              <span>{ast.asset_name}</span>
-            </label>
-          ))}
+        <fieldset className="w-full p-3 border border-gray-300 rounded-lg space-y-1 mt-2">
+          <legend className="font-medium text-gray-700 px-1 -ml-1">Graph filters</legend>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-1 gap-x-4">
+            {!!state_investments.length && (
+              <label className="flex items-center space-x-2 text-gray-700">
+                <input
+                  type="checkbox"
+                  name="includeInv"
+                  checked={formData.includeInv}
+                  onChange={handleProductToggle}
+                  className="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                />
+                <span>Investments</span>
+              </label>
+            )}
+            
+            {state_accounts.map(acc => (
+              <label key={acc.account_id} className="flex items-center space-x-2 text-gray-700">
+                <input
+                  type="checkbox"
+                  name={acc.account_id}
+                  checked={formData.accounts.has(acc.account_id)}
+                  onChange={handleAccountToggle}
+                  className="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                />
+                <span>{acc.account_name}</span>
+              </label>
+            ))}
+            
+            {state_assets.map(ast => (
+              <label key={ast.id} className="flex items-center space-x-2 text-gray-700">
+                <input
+                  type="checkbox"
+                  name={ast.id}
+                  checked={formData.assets.has(ast.id)}
+                  onChange={handleAssetToggle}
+                  className="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                />
+                <span>{ast.asset_name}</span>
+              </label>
+            ))}
+          </div>
         </fieldset>
       )}
     </form>

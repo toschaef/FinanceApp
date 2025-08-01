@@ -41,9 +41,15 @@ const ManageBanks = () => {
   return (
     <div>
       <NavBar />
-      {hasItem? <h1>Linked Banks</h1> : <h1>Link bank via plaid</h1>}
+
+      {hasItem
+        ? <h1>Linked Banks</h1>
+        : <h1>Link bank via plaid</h1>
+      }
+
       {loading && <p>loading...</p>}
       {error && <p>{error}</p>}
+      
       <ul>
         {hasItem &&
           bankNames.map((name) => (

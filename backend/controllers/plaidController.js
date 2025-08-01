@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const client = require('../config/plaid');
-require('dotenv').config();
+const axios = require('axios');
+const verifyJwt = require('../helpers/verifyJwt');
 const { fetchAccounts, fetchTransactions, fetchInvestments, fetchAssets, postAsset, deleteAsset } = require('./queries');
 
 const createLinkToken = async (req, res) => {
@@ -11,21 +12,26 @@ const createLinkToken = async (req, res) => {
       products: (process.env.PLAID_PRODUCTS).split(','),
       country_codes: (process.env.PLAID_COUNTRY_CODES).split(','),
       language: 'en',
+      webhook: process.env.PLAID_WEBHOOK_URL,
     });
-    console.log(`\nNew link token created`);
     res.status(201).json(response.data);
   } catch (err) {
-    console.error('Error creating link token:', err);
+    console.error(`Error creating link token: ${err.message}`);
     res.status(500).json({ error: 'Failed to create link token' });
   }
 };
 
 const setAccessToken = async (req, res) => {
-  const { public_token, email } = req.body;
+  const { public_token, email, user_token } = req.body;
   const startDate = '2000-01-01';
   const endDate = new Date().toISOString().split('T')[0];
 
   try {
+    // check for valid jwt
+    if (!verifyJwt(user_token, email)) {
+      return res.status(401).json({ error: 'Invalid JWT' })
+    }
+
     // get access token
     const tokenResponse = await client.itemPublicTokenExchange({ public_token });
     const { access_token, item_id } = tokenResponse.data;
@@ -189,14 +195,21 @@ const setAccessToken = async (req, res) => {
 
     res.status(201).json({ bank_name: institutionName });
   } catch (err) {
-    console.error('Error setting access token:', err);
+    console.error(`Error setting access token: ${err.message}`);
     res.status(500).json({ error: 'Token exchange failed' });
   }
 };
 
 const getAccounts = async (req, res) => {
   try {
-    const accounts = await fetchAccounts(req.query.email);
+    const { email, user_token } = req.query;
+
+    // check for valid jwt
+    if (!verifyJwt(user_token, email)) {
+      return res.status(401).json({ error: 'Invalid JWT' })
+    }
+
+    const accounts = await fetchAccounts(email);
     res.status(200).json({ accounts });
   } catch (err) {
     console.error(err);
@@ -206,7 +219,14 @@ const getAccounts = async (req, res) => {
 
 const getTransactions = async (req, res) => {
   try {
-    const transactions = await fetchTransactions(req.query.email);
+    const { email, user_token } = req.query;
+
+    // check for valid jwt
+    if (!verifyJwt(user_token, email)) {
+      return res.status(401).json({ error: 'Invalid JWT' })
+    }
+
+    const transactions = await fetchTransactions(email);
     res.status(200).json({ transactions });
   } catch (err) {
     console.error(err);
@@ -216,7 +236,14 @@ const getTransactions = async (req, res) => {
 
 const getInvestments = async (req, res) => {
   try {
-    const investments = await fetchInvestments(req.query.email);
+    const { email, user_token } = req.query;
+
+    // check for valid jwt
+    if (!verifyJwt(user_token, email)) {
+      return res.status(401).json({ error: 'Invalid JWT' })
+    }
+
+    const investments = await fetchInvestments(email);
     res.status(200).json({ investments });
   } catch (err) {
     console.error('Error fetching investments:', err);
@@ -226,7 +253,14 @@ const getInvestments = async (req, res) => {
 
 const getAssets = async (req, res) => {
   try {
-    const assets = await fetchAssets(req.query.email);
+    const { email, user_token } = req.query;
+
+    // check for valid jwt
+    if (!verifyJwt(user_token, email)) {
+      return res.status(401).json({ error: 'Invalid JWT' })
+    }
+
+    const assets = await fetchAssets(email);
     res.status(200).json({ assets })
   } catch (err) {
     console.error('Error fetching assets:', err);
@@ -236,6 +270,13 @@ const getAssets = async (req, res) => {
 
 const addAsset = async (req, res) => {
   try {
+    const { email, user_token } = req.body;
+
+    // check for valid jwt
+    if (!verifyJwt(user_token, email)) {
+      return res.status(401).json({ error: 'Invalid JWT' })
+    }
+
     await postAsset(req.body);
     res.status(201).json({ message: 'Asset created successfully' });
   } catch (err) {
@@ -246,7 +287,13 @@ const addAsset = async (req, res) => {
 
 const removeAsset = async (req, res) => {
   try {
-    const { email, id } = req.query;
+    const { email, id, user_token } = req.query;
+
+    // check for valid jwt
+    if (!verifyJwt(user_token, email)) {
+      return res.status(401).json({ error: 'Invalid JWT' })
+    }
+
     await deleteAsset({ email, id });
     res.sendStatus(204);
   } catch (err) {
@@ -256,8 +303,14 @@ const removeAsset = async (req, res) => {
 }
 
 const getAll = async (req, res) => {
-  const email = req.query.email;
   try {
+    const { email, user_token } = req.query;
+
+    // check for valid jwt
+    if (!verifyJwt(user_token, email)) {
+      return res.status(401).json({ error: 'Invalid JWT' })
+    }
+    
     const [transactions, investments, accounts, assets] = await Promise.all([
       fetchTransactions(email),
       fetchInvestments(email),
@@ -273,15 +326,16 @@ const getAll = async (req, res) => {
 }
 
 const deleteItem = async (req, res) => {
-  const { bankName, email } = req.query;
-
-  if (!bankName || !email) {
-    return res.status(400).json({ error: "bankName and email are required" });
-  }
-
-  const conn = db.promise();
-
   try {
+    const { bankName, email, user_token } = req.query;
+
+    // check for valid jwt
+    if (!verifyJwt(user_token, email)) {
+      return res.status(401).json({ error: 'Invalid JWT' })
+    }
+
+    const conn = db.promise();
+
     await conn.query("start transaction");
     // investment_transactions
     await conn.execute(`
@@ -336,6 +390,41 @@ const deleteItem = async (req, res) => {
   }
 };
 
+// simulate webhook from plaid
+const fireWebhook = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const secret = process.env.PLAID_ENV === 'sandbox'
+      ? process.env.PLAID_SECRET_SANDBOX
+      : process.env.PLAID_SECRET_PRODUCTION
+      
+    const [rows] = await db.promise().query(
+      `select access_token from items where user_id = (
+        select id from users where email = ?
+       )`,
+      [email]
+    );
+    const token = rows[0]?.access_token;
+
+    response = await axios.post('https://sandbox.plaid.com/sandbox/item/fire_webhook', {
+      access_token: token,
+      client_id: process.env.PLAID_CLIENT_ID,
+      secret,
+      webhook_type: "TRANSACTIONS",
+      webhook_code: 'DEFAULT_UPDATE',
+    });
+
+    if (response.data.webhook_fired) {
+      res.sendStatus(200);
+    } else {
+      throw new Error('Webhook did not fire');
+    }
+  } catch (err) {
+    console.error('Error firing webhook', err);
+    res.sendStatus(500);
+  }
+}
+
 module.exports = {
   createLinkToken,
   setAccessToken,
@@ -347,4 +436,5 @@ module.exports = {
   removeAsset,
   getAll,
   deleteItem,
+  fireWebhook,
 };

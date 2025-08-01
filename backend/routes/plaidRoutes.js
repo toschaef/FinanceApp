@@ -1,5 +1,9 @@
 const express = require('express');
-const { createLinkToken, setAccessToken, getAccounts, getTransactions, getInvestments, getAssets, addAsset, removeAsset, getAll, deleteItem } = require('../controllers/plaidController');
+
+const { createLinkToken, setAccessToken, getAccounts, 
+  getTransactions, getInvestments, 
+  getAssets, addAsset, removeAsset, getAll, 
+  deleteItem, fireWebhook } = require('../controllers/plaidController');
 
 const router = express.Router();
 
@@ -19,5 +23,7 @@ router.delete('/assets', removeAsset);
 router.get('/all', getAll);
 
 router.delete('/delete-item', deleteItem);
+
+router.post('/fire-webhook', fireWebhook);
 
 module.exports = router;

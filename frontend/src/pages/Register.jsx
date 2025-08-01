@@ -37,45 +37,49 @@ const Register = () => {
 
   return (
     <>
-    {!email?
-      <>
-        <h2>Register</h2>
-        {error && <p>{error}</p>}
-        <form onSubmit={handleRegister}>
-          <div>
-            <label>email:</label>
-            <input
-              type="text"
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label>Password:</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button 
-            type="submit" 
-            disabled={loading}
+    {!email
+      ? <>
+          <h2>Register</h2>
+          {error && <p>{error}</p>}
+          <form onSubmit={handleRegister}>
+            <div>
+              <label>email:</label>
+              <input
+                type="text"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label>Password:</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button 
+              type="submit" 
+              disabled={loading}
+            >
+              {loading
+                ? <>
+                    Registering...
+                  </>
+                : "Register"
+              }
+            </button>
+          </form>
+          <button onClick={() => navigate("/")}>Login</button>
+          <button
+            onClick={() => navigate("/forgot")}
           >
-            {loading ? 'Registering…' : 'Register'}
+            Forgot password
           </button>
-        </form>
-        <button onClick={() => navigate("/")}>Login</button>
-        <button
-          onClick={() => navigate("/forgot")}
-        >
-          Forgot password
-        </button>
-      </>
-      :
-      <VerifyEmail path='' register={true} />
+        </>
+      : <VerifyEmail path='' register={true} />
     }
     </>
   );

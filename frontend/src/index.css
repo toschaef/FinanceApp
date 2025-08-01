@@ -7,14 +7,4 @@
     html {
       font-family: theme('fontFamily.sans');
     }
-    div, form {
-      @apply flex flex-col;
-    }
-}
-
-input {
-  max-width: 300px;
-}
-button {
-  max-width: 225px;
 }
