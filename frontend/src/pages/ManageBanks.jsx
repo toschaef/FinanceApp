@@ -1,11 +1,11 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import Context from '../Context';
 import LinkButton from '../components/LinkButton'
 import NavBar from '../components/NavBar';
 import axios from 'axios';
 
 const ManageBanks = () => {
-  const { email, bankNames, hasItem, dispatch, refreshContext } = useContext(Context);
+  const { email, bankNames, hasItem, user_token, dispatch, refreshContext } = useContext(Context);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -17,7 +17,8 @@ const ManageBanks = () => {
       await axios.delete('/api/delete-item', {
         params: {
           bankName,
-          email
+          email,
+          user_token,
       }});
 
       const newBankNames = bankNames.filter((e) => e !== bankName);
@@ -29,7 +30,7 @@ const ManageBanks = () => {
           hasItem: !!newBankNames.length,
         }
       });
-      refreshContext(email);
+      refreshContext(email, user_token);
     } catch (err) {
       console.log('Error deleting item', err);
       setError('Error deleting item');

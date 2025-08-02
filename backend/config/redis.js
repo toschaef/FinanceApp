@@ -3,7 +3,7 @@ const { createClient } = require('redis');
 const redis = createClient({
   socket: {
     host: 'localhost',
-    port: 6379,
+    port: process.env.REDIS_PORT || 6379,
     connectTimeout: 100000, // very, very slow
   }
 });

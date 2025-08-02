@@ -334,6 +334,7 @@ const deleteItem = async (req, res) => {
       return res.status(401).json({ error: 'Invalid JWT' })
     }
 
+    // delete data in 1 promise
     const conn = db.promise();
 
     await conn.query("start transaction");

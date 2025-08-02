@@ -8,7 +8,9 @@ const verifyJwt = (token, email) => {
     if (payload.email === email) {
       return true;
     }
-  } catch (err) {}
+  } catch (err) {
+    console.log('error verifying jwt', err.message || err);
+  }
   return false;
 }
 
