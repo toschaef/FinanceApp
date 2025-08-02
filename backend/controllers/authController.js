@@ -61,7 +61,6 @@ const verifyAndRegister = async (req, res) => {
     const password = await redis.get(key);
     if (!password) return res.status(400).json({ message: 'Invalid or expired code' });
     if (Boolean(register)) {
-      console.log('Registering new user', {email, password});
       await db.promise().execute(
         'insert into users (email, password) values (?, ?)',
         [email, password]

@@ -37,10 +37,10 @@ const Context = createContext();
 const Provider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const refreshContext = async (email, public_token) => {
+  const refreshContext = async (email, token) => {
     try {
       const res = await axios.get(`/api/all`, {
-        params: { email, public_token },
+        params: { email, token },
       });
       dispatch({
         type: "SET_STATE",

@@ -7,7 +7,6 @@ const NavBar = () => {
 
   const handleLogout = () => {
     dispatch({ type: "WIPE_STATE" });
-    navigate('/');
   }
 
 return (
