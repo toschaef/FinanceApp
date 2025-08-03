@@ -99,7 +99,7 @@ const AreaGraph = () => {
             }}
           >
             <XAxis
-              dataKey="date"
+              dataKey='date'
               tick={false}
               axisLine={false}
             />

@@ -1,5 +1,5 @@
-import { createContext, useReducer } from "react";
-import axios from "axios";
+import { createContext, useReducer } from 'react';
+import axios from 'axios';
 
 const initialState = {
   bankNames: [],
@@ -17,11 +17,11 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case "SET_STATE":
+    case 'SET_STATE':
       return { ...state, ...action.state };
-    case "WIPE_STATE":
+    case 'WIPE_STATE':
         return { ...initialState };
-    case "REM_BANK":
+    case 'REM_BANK':
       const filtered = bankNames.filter((e) => { e !== action.bankName }); 
       return {
         ...state,
@@ -43,7 +43,7 @@ const Provider = ({ children }) => {
         params: { email, user_token },
       });
       dispatch({
-        type: "SET_STATE",
+        type: 'SET_STATE',
         state: {
           state_transactions: res.data.transactions,
           state_investments: res.data.investments,
@@ -62,7 +62,7 @@ const Provider = ({ children }) => {
       console.log('user token:', token);
       const res = await axios.get(`/api/${prod}?email=${email}&user_token=${token}`);
       dispatch({
-        type: "SET_STATE",
+        type: 'SET_STATE',
         state: { [key]: res.data[prod] }
       });
       return res.data[prod]

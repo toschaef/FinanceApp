@@ -4,6 +4,7 @@ const transporter = require('../config/email');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const generateCode = require('../helpers/codeGenerator');
+const verifyJwt = require('../helpers/verifyJwt');
 
 // send verification code to user and hash password (if registering)
 const startRegistration = async (req, res) => {
@@ -52,7 +53,7 @@ const verifyAndRegister = async (req, res) => {
   const { 
     email, 
     code, 
-    register, // if register: register user in db, else skip and verify
+    register, // if register: register user in db, else: skip and just verify
   } = req.body;
 
   const key = `verify:${email}:${code}`;
@@ -67,8 +68,10 @@ const verifyAndRegister = async (req, res) => {
       );
     }
     await redis.del(key);
-    const status = register? 201 : 204;
-    res.sendStatus(status);
+
+    const user_token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '3h' });
+
+    res.status(201).json({ user_token });
   } catch (err) {
     console.error(`Verification error: ${err.message}`);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -102,7 +105,7 @@ const login = async (req, res) => {
     const bankNames = rawbankNames.filter(n => n != null);
     const hasItem = !!bankNames.length;
 
-    const user_token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '3h' })
+    const user_token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '3h' });
 
     res.status(200).json({
         email: user.email,
@@ -117,7 +120,7 @@ const login = async (req, res) => {
 };
 
 const changePassword = async (req, res) => {
-  const { email, pass } = req.body.perams;
+  const { email, pass, user_token } = req.body.perams;
 
   const encrypt = async (pass) => {
     const hashedPass = await bcrypt.hash(pass, 10);
@@ -125,6 +128,11 @@ const changePassword = async (req, res) => {
   }
 
   try { 
+    // check for valid jwt
+    if (!verifyJwt(user_token, email)) {
+      return res.status(401).json({ error: 'Invalid JWT' })
+    }
+
     const encryptedPass = await encrypt(pass);
     await db.promise().execute(
       `update users

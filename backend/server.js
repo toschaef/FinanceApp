@@ -34,7 +34,7 @@ app.use((req, res) => {
 // error handler
 app.use((error, req, res, next) => {
   console.error(error.message);
-  res.status(404).json({ error: "not found" });
+  res.status(404).json({ error: 'not found' });
 });
 
 // server init

@@ -15,7 +15,7 @@ const LinkButton = ({ text }) => {
           user_token,
         });
         dispatch({
-          type: "SET_STATE",
+          type: 'SET_STATE',
           state: {
             hasItem: true,
             bankNames: [...bankNames, res.data.bank_name],

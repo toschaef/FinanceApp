@@ -1,7 +1,7 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext } from 'react';
 import Context from '../Context';
 import formatCurrency from '../util/formatCurrency';
-import NavBar from "./NavBar";
+import NavBar from './NavBar';
 
 const Investments = () => {
   const { state_investments } = useContext(Context);

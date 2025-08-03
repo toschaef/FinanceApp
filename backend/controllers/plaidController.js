@@ -40,7 +40,7 @@ const setAccessToken = async (req, res) => {
     if (!userRow) return res.status(404).json({ message: 'User not found' });
     const user_id = userRow.id;
 
-    let institutionName = "Unknown Bank";
+    let institutionName = 'Unknown Bank';
     const itemRes = await client.itemGet({ access_token });
 
     const institutionRes = await client.institutionsGetById({
@@ -337,7 +337,7 @@ const deleteItem = async (req, res) => {
     // delete data in 1 promise
     const conn = db.promise();
 
-    await conn.query("start transaction");
+    await conn.query('start transaction');
     // investment_transactions
     await conn.execute(`
       delete it
@@ -382,12 +382,12 @@ const deleteItem = async (req, res) => {
       where i.bank_name = ? and u.email = ?;
     `, [bankName, email]);
 
-    await conn.query("commit");
+    await conn.query('commit');
     return res.sendStatus(204);
   } catch (err) {
-    await conn.query("rollback");
+    await conn.query('rollback');
     console.log('Error deleting item', err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
@@ -411,7 +411,7 @@ const fireWebhook = async (req, res) => {
       access_token: token,
       client_id: process.env.PLAID_CLIENT_ID,
       secret,
-      webhook_type: "TRANSACTIONS",
+      webhook_type: 'TRANSACTIONS',
       webhook_code: 'DEFAULT_UPDATE',
     });
 

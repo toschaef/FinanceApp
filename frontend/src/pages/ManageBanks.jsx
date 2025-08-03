@@ -61,7 +61,7 @@ const ManageBanks = () => {
           ))}
       </ul>
       <br />
-      <LinkButton text={"Add Bank"} />
+      <LinkButton text={'Add Bank'} />
     </div>
   );
 };

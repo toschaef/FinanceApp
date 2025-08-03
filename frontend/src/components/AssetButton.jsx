@@ -50,44 +50,44 @@ const AssetButton = ({ text }) => {
     {show &&
       <fieldset>
         <input
-          name="asset_name"
-          placeholder="Asset Name"
+          name='asset_name'
+          placeholder='Asset Name'
           value={formData.asset_name}
           onChange={handleChange}
           required
         />
         <input
-          name="estimated_value"
-          placeholder="Estimated Value"
+          name='estimated_value'
+          placeholder='Estimated Value'
           value={formData.estimated_value}
           onChange={handleChange}
-          type="number"
+          type='number'
           required
         />
         <input
-          name="quantity"
-          placeholder="Quantity"
+          name='quantity'
+          placeholder='Quantity'
           value={formData.quantity}
           onChange={handleChange}
-          type="number"
+          type='number'
           required
         />
         <input
-          name="acquisition_date"
-          placeholder="Acquisition Date"
+          name='acquisition_date'
+          placeholder='Acquisition Date'
           value={formData.acquisition_date}
           onChange={handleChange}
-          type="date"
+          type='date'
         />
         <input
-          name="iso_currency_code"
-          placeholder="Currency Code (USD)"
+          name='iso_currency_code'
+          placeholder='Currency Code (USD)'
           value={formData.iso_currency_code}
           onChange={handleChange}
         />
         <textarea
-          name="description"
-          placeholder="Description"
+          name='description'
+          placeholder='Description'
           value={formData.description}
           onChange={handleChange}
         />

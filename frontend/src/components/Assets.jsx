@@ -1,9 +1,9 @@
-import { useContext } from "react";
+import { useContext } from 'react';
 import Context from '../Context';
 import formatCurrency from '../util/formatCurrency';
 import axios from 'axios';
-import NavBar from "./NavBar";
-import AssetButton from "./AssetButton";
+import NavBar from './NavBar';
+import AssetButton from './AssetButton';
 
 const Assets = () => {
   const { email, state_assets, user_token, refreshProduct } = useContext(Context);
@@ -24,7 +24,7 @@ const Assets = () => {
     <h1>Assets</h1>
     {Object.keys(state_assets).length === 0 ? (<>
       <p>No assets found</p>
-      <AssetButton text="Add One" />
+      <AssetButton text='Add One' />
     </>) : (<>
       {state_assets
         .sort((a, b) => a.asset_name.localeCompare(b.asset_name))
@@ -36,7 +36,7 @@ const Assets = () => {
             {ast.bio}
           </li>
       ))}
-      <AssetButton text="Add Asset" />
+      <AssetButton text='Add Asset' />
     </>)}
   </>);
 };
