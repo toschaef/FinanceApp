@@ -52,7 +52,7 @@ return (
 
       <button 
         onClick={handleLogout}
-        className='px-4 my-auto h-4/5 bg-green-600 text-white font-semibold rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200'
+        className='px-4 my-auto h-4/5 bg-green-600 text-white rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200'
       >
         Logout
       </button>
