@@ -1,16 +1,14 @@
-import { useState, useContext, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import { subDays, eachDayOfInterval, eachHourOfInterval, eachMinuteOfInterval, formatISO } from 'date-fns';
 import Context from '../Context';
 
-const FilterGraph = () => {
-  const { state_accounts, state_transactions, state_investments, state_assets, dispatch, hasItem } = useContext(Context);
-
+const FilterGraph = ({ accounts, investments, transactions, assets, timespan, onChange = () => {}, thumbnail }) => {
+  const { state_transactions, state_investments, state_accounts, state_assets } = useContext(Context);
   const [advanced, setAdvanced] = useState(false);
   const [formData, setFormData] = useState({ 
-    span: '30', 
-    includeInv: true, 
-    accounts: new Set(state_accounts.map(a => a.account_id)), 
-    assets: hasItem? new Set() : new Set(state_assets.map(a => a.id)) // if asset but no item, start with assets checked
+    span: timespan? timespan : '30', 
+    accounts: new Set(accounts.map(a => a.account_id)), 
+    assets: new Set(assets.map(a => a.id))
   });
 
   const toggleAdv = () => {
@@ -19,10 +17,6 @@ const FilterGraph = () => {
 
   const handleSelectChange = (e) => {
     setFormData(d => ({ ...d, span: e.target.value }));
-  }
-    
-  const handleProductToggle = (e) => {
-    setFormData(d => ({ ...d, [e.target.name]: e.target.checked }));
   }
 
   const handleAccountToggle = e => {
@@ -43,34 +37,32 @@ const FilterGraph = () => {
   }
 
   const graphData = useMemo(() => {
-    const { span, includeInv, accounts, assets } = formData;
-    const keepAccount = (id) => accounts.size === 0 || accounts.has(id);
-    const keepAsset = (id) => assets.has(id);
+    const { span, accounts: accSet, assets: asSet } = formData;
 
     // collect each relevant date
     const dateNums = (arr, key) => arr.map(item => +new Date(item[key]));
-    const tDates = dateNums(state_transactions, 'transaction_date');
-    const iDates = state_investments.flatMap(inv => dateNums(inv.transactions, 'transaction_date'));
-    const aDates = dateNums(state_assets, 'acquisition_date');
+    const tDates = dateNums(transactions, 'transaction_date');
+    const iDates = investments.flatMap(inv => dateNums(inv.transactions, 'transaction_date'));
+    const aDates = dateNums(assets.filter(a => a.acquisition_date), 'acquisition_date');
 
     // get date window
     const end = new Date();
     const start =
-      span === 'x' // if all time, pick oldest transaction/inv transaction date
-        ? new Date(Math.min(...tDates, ...iDates, ...aDates))
+      span === 'x' // if all time, pick oldest transaction/inv transaction date - 2 days
+        ? subDays(new Date(Math.min(...tDates, ...iDates, ...aDates)), 2)
         : subDays(end, Number(span));
 
-    let intervalFunc, dateKey, step;
+    let intervalFunc, dateKey, step, timespan = Number(span);
 
-    if (span <= 1) { // 1 day
+    if (timespan <= 1) { // 1 day
       intervalFunc = eachMinuteOfInterval;
       dateKey = (d) => formatISO(d).slice(0, 16);
       step = { minutes: 15 };
-    } else if (span < 7) { // < 7 days
+    } else if (timespan < 7) { // < 7 days
       intervalFunc = eachHourOfInterval;
       dateKey = (d) => formatISO(d).slice(0, 13);
       step = { hours: 1 };
-    } else if (span <= 45) { // <= 45 days
+    } else if (timespan <= 45) { // <= 45 days
       intervalFunc = eachHourOfInterval;
       dateKey = (d) => formatISO(d).slice(0, 13);
       step = { hours: 12 };
@@ -87,20 +79,18 @@ const FilterGraph = () => {
     });
 
     state_transactions.forEach(t => {
-      if (!keepAccount(t.account_id)) return;
+      if (!accSet.has(t.account_id)) return;
       const key = dateKey(new Date(t.transaction_date));
       dates[key] && (dates[key].change += Number(t.amount));
     });
 
-    if (includeInv) {
-      state_investments.forEach(i => {
-        i.transactions.forEach(it => {
-          if (!keepAccount(it.account_id)) return;
-          const key = dateKey(new Date(it.transaction_date));
-          dates[key] && (dates[key].change += Number(it.amount));
-        })
-      });
-    }
+    state_investments.forEach(i => {
+      if (!accSet.has(i.account_id)) return;
+      i.transactions.forEach(it => {
+        const key = dateKey(new Date(it.transaction_date));
+        dates[key] && (dates[key].change += Number(it.amount));
+      })
+    });
 
     // sort dates asc
     const sorted = Object.values(dates).sort(
@@ -109,8 +99,7 @@ const FilterGraph = () => {
 
     let offsetBeforeWindow = 0;
     state_assets.forEach(a => {
-      if (!keepAsset(a.id)) return;
-    
+      if (!asSet.has(a.id)) return;
       const acquired = a.acquisition_date && new Date(a.acquisition_date);
       
       if (!acquired || acquired < start) {
@@ -130,11 +119,11 @@ const FilterGraph = () => {
     });
 
     const actual = state_accounts
-      .filter(ac => keepAccount(ac.account_id))
+      .filter(ac => accSet.has(ac.account_id))
       .reduce((sum, ac) => sum + Number(ac.account_balance), 0)
       + state_assets
-        .filter(a => keepAsset(a.id))
-        .reduce((sum, a) => sum + Number(a.amount), 0);
+        .filter(as => asSet.has(as.id))
+        .reduce((sum, as) => sum + Number(as.amount), 0);
 
     const delta = actual - running;
 
@@ -144,14 +133,17 @@ const FilterGraph = () => {
       p.color = Number(p.balance) < 0 ? 'r' : 'g';
     });
     return sorted;
-  }, [formData, state_transactions, state_investments, state_accounts, state_assets]);
+  }, [formData, transactions, investments, accounts, assets]);
 
   useEffect(() => {
-    dispatch({ type: 'SET_STATE', state: { graphData } });
-  }, [graphData, dispatch]);
+    onChange(graphData);
+  }, [graphData, onChange]);
+
+  // don't render if graph is a thumbnail
+  if (thumbnail) return null;
 
   return (
-    <form className='max-w-2xl min-w-[400px] mx-auto flex flex-col space-y-2 p-4 border border-gray-300 rounded-lg bg-white relative z-10 text-sm'>
+    <form className='max-w-2xl min-w-[400px] mx-auto mt-4 flex flex-col space-y-2 p-4 border border-gray-300 rounded-lg bg-white relative z-10 text-sm'>
       <div className='flex flex-row items-center space-x-4 w-full'>
         <div className='relative w-1/2'>
           <select
@@ -189,19 +181,6 @@ const FilterGraph = () => {
           <legend className='font-medium text-gray-700 px-1 -ml-1'>Graph filters</legend>
           
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-1 gap-x-4'>
-            {!!state_investments.length && (
-              <label className='flex items-center space-x-2 text-gray-700'>
-                <input
-                  type='checkbox'
-                  name='includeInv'
-                  checked={formData.includeInv}
-                  onChange={handleProductToggle}
-                  className='form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out'
-                />
-                <span>Investments</span>
-              </label>
-            )}
-            
             {state_accounts.map(acc => (
               <label key={acc.account_id} className='flex items-center space-x-2 text-gray-700'>
                 <input

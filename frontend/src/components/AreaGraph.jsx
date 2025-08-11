@@ -1,19 +1,33 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts';
-import { useContext, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import dayjs from 'dayjs';
-import Context from '../Context';
 import FilterGraph from './AreaFilter';
 
-const AreaGraph = () => {
-  const { graphData } = useContext(Context);
-
+/*
+  perams:
+    title - graph title
+    timespan - starting timespan of graph - default 30
+    height - graph height: must be an absolute
+    width - graph width or 100%
+    accounts, investments, transactions, assets - context graphed on first render
+    thumbnail (bool) - when true hide filter and axis, thumbnail view
+*/
+const AreaGraph = ({ title, timespan, height, width, accounts, investments, transactions, assets, thumbnail }) => {
+  const [graphData, setGraphData] = useState([]);
   /*
     sorts balances into seperate
     vaiables to allow the line to have 2 colors
+
+    then
+
+    inserts points into graph data
+    that force the grap to have a point
+    with a balance equal to 0
   */
-  const processedData = () => (
-    graphData.map(d => {
-      if (Number(d.balance == 0)) {
+  const formattedGraphData = useMemo(() => {
+    // seperate balances into red and green to make bicolored graph
+    const data = graphData.map(d => {
+      if (d.balance == 0) {
         return {
           ...d,
           greenBalance: 0,
@@ -24,16 +38,8 @@ const AreaGraph = () => {
         ...d,
         greenBalance: d.color == 'g' ? d.balance : null,
         redBalance: d.color == 'r' ? d.balance : null,
-    }}
-  ));
-
-  /*
-    inserts points into graph data
-    that force the grap to have a point
-    with a balance equal to 0
-  */
-  const insertZeroCrossings = useMemo(() => {
-    const data = processedData();
+    }});
+    // add balance at exactly $0 to transition lines smoothly
     return data.reduce((acc, curr, i) => {
       acc.push(curr);
       const next = data[i+1];
@@ -62,6 +68,7 @@ const AreaGraph = () => {
     }, []);
   }, [graphData]);
 
+  // returns bounds of graph
   const [yMin, yMax] = useMemo(() => {
     const balances = graphData.map(d => d.balance);
     const dataMin = Math.min(...balances);
@@ -83,39 +90,51 @@ const AreaGraph = () => {
     return [ymin, ymax]
   }, [graphData]);
 
+  const dimensions = {
+    height,
+    width,
+  }
+
   return (
     <div className='w-full flex flex-col'>
-      <div className='h-[300px] mb-4'>
-        <h3 className='flex my-3 text-align-center font-semibold text-xl'>Balance</h3>
+      <div style={dimensions}>
+        {title &&
+          <span className="flex justify-center items-center mt-2 mb-4 font-bold text-3xl">{title}</span>
+        }
         <ResponsiveContainer width='100%' height='100%'>
           <AreaChart
             // graphData with color
-            data={insertZeroCrossings}
+            data={formattedGraphData}
             margin={{
-              top: 5,
-              right: 10,
-              left: 10,
-              bottom: 20,
+              top: thumbnail? 2 : 5,
+              right: thumbnail? 2 : 10,
+              left: thumbnail? 2 : 10,
+              bottom: thumbnail? 2 : 25,
             }}
           >
-            <XAxis
-              dataKey='date'
-              tick={false}
-              axisLine={false}
-            />
-            <YAxis
-              allowDecimals={false}
-              dataKey='balance'
-              tickCount={3}
-              domain={[yMin, yMax]}
-              tickFormatter={v =>
-                v.toLocaleString('en-US', {
-                  style:    'currency',
-                  currency: 'USD',
-                }).replace('.00', '')
-              }
-              scale='linear'
-            />
+            {!thumbnail &&
+              <XAxis
+                dataKey='date'
+                tick={false}
+                axisLine={false}
+              />
+            }
+            {!thumbnail && 
+              <YAxis
+                allowDecimals={false}
+                dataKey='balance'
+                tickCount={3}
+                domain={[yMin, yMax]}
+                tickFormatter={v =>
+                  v.toLocaleString('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                  }).replace('.00', '')
+                }
+                scale='linear'
+              />
+            }
+          {!thumbnail && 
             <Tooltip
               labelFormatter={l => dayjs(l).format('MMMM D, YYYY')}
               formatter={(value, color) => {
@@ -128,6 +147,7 @@ const AreaGraph = () => {
                 return [null, null];
               }}
             />
+            }
             <ReferenceLine 
               y={0} 
               stroke='#000000' 
@@ -169,7 +189,15 @@ const AreaGraph = () => {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <FilterGraph />
+      <FilterGraph
+        timespan={timespan}
+        accounts={accounts}
+        investments={investments}
+        transactions={transactions}
+        assets={assets}
+        onChange={setGraphData}
+        thumbnail={thumbnail}
+      />
     </div>
   );
 }

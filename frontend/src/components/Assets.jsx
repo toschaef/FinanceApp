@@ -13,7 +13,7 @@ const Assets = () => {
       await axios.delete('/api/assets', {
         params: { email, id, user_token }
       });
-      await refreshProduct('assets', email);
+      await refreshProduct('assets', email, user_token);
     } catch (err) {
       console.error('Error deleting asset', err);
     }
