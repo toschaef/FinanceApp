@@ -1,7 +1,6 @@
 import { useState, useContext, useCallback } from 'react';
 import Context from '../Context';
 import LinkButton from '../components/LinkButton';
-import NavBar from '../components/NavBar';
 import axios from 'axios';
 import AreaGraph from '../components/AreaGraph';
 
@@ -10,7 +9,7 @@ const ManageBanks = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const dataFromBank = useCallback((bankName ) => {
+  const dataFromBank = useCallback((bankName) => {
     const accounts = state_accounts.filter(a => a.institution_name === bankName);
     const transactions = state_transactions.filter(t => accounts.some(acc => acc.id === t.account_id));
     const investments = state_investments.filter(i => accounts.some(acc => acc.id === i.account_id));
@@ -67,8 +66,6 @@ const ManageBanks = () => {
 
   return (
     <div className='min-h-screen bg-gray-100 font-sans'>
-      <NavBar />
-
       <div className='flex justify-center p-6'>
         <div className='bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl'>
           <h1 className='text-2xl font-bold text-gray-800 mb-6 text-center'>

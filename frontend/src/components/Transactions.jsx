@@ -1,7 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import Context from '../Context';
 import formatCurrency from '../util/formatCurrency';
-import NavBar from './NavBar';
 
 const Transactions = () => {
   const { state_transactions } = useContext(Context);
@@ -36,13 +35,12 @@ const Transactions = () => {
 
   return (
     <div>
-      <NavBar />
       <h1>Transactions</h1>
         {Object.keys(transactions).length === 0 ? (
           <p>No transactions found.</p>
         ) : (
           <>
-          {Object.entries(transactions)
+          {transactions
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([bankName, accounts]) => (
               <div key={bankName}>

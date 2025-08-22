@@ -2,17 +2,22 @@ import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Context from '../Context';
+import VerifyEmail from './VerifyEmail';
 
 const Login = () => {
+  const [showLogin, setShowLogin] = useState(true); // toggle between login/register true: login
+  const [showVerify, setShowVerify] = useState(false); // toggle showing email verification
   const [emailInput, setEmailInput] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { dispatch } = useContext(Context);
+  const { emailVerified, dispatch } = useContext(Context);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+    if (e)
+      e.preventDefault();
+    
     setError('');
     setLoading(true);
 
@@ -56,10 +61,43 @@ const Login = () => {
     }
   };
 
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      await axios.post('/api/send-verification-email', { 
+        email: emailInput, 
+        password, 
+        register: true 
+      });
+      dispatch({
+        type: 'SET_STATE',
+        state: { email: emailInput }
+      });
+      setShowVerify(true);
+    } catch (err) {
+      console.error('error:', err);
+      const error = err.response.data.error || 'network error';
+      setError(error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (emailVerified)
+      handleLogin();
+  }, [emailVerified]);
+
+  if (showVerify)
+    return <VerifyEmail register={true} />
+
   return (
     <div className='min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans'>
       <div className='bg-white p-8 rounded-lg shadow-xl w-full max-w-md'>
-        <h1 className='text-3xl font-bold text-gray-800 mb-6 text-center'>Login</h1>
+        <h1 className='text-3xl font-bold text-gray-800 mb-6 mt-3 text-center'>
+          {showLogin? 'Login' : 'Register'}
+        </h1>
 
         {error && 
           <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm flex items-center'>
@@ -78,12 +116,15 @@ const Login = () => {
           </div>
         }
 
-        <form onSubmit={handleLogin} className='space-y-4'>
+        <form 
+          onSubmit={showLogin? handleLogin : handleRegister}
+          className='space-y-4'
+        >
           <div>
             <label htmlFor='email' className='block text-gray-700 text-sm font-semibold mb-2'>Email:</label>
             <input
               id='email'
-              className='shadow-sm appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out'
+              className='shadow-sm appearance-none border rounded-md w-[calc(100%-12px)] ml-2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out'
               type='email'
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
@@ -95,56 +136,64 @@ const Login = () => {
             <label htmlFor='password' className='block text-gray-700 text-sm font-semibold mb-2'>Password:</label>
             <input
               id='password'
-              className='shadow-sm appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 ease-in-out'
+              className='shadow-sm appearance-none border rounded-md w-[calc(100%-12px)] ml-2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 ease-in-out'
               type='password'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder='********'
+              placeholder='••••••••'
             />
           </div>
-          <div className='flex justify-center'>
+          <div className='flex justify-center !my-6'>
             <button
               className='w-3/5 mx-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed'
               type='submit'
               disabled={loading}
             >
               {loading
-              ? <div className='flex items-center justify-center space-x-2'>
-                  <span>Logging in...</span>
-                  <svg
-                    className='animate-spin h-5 w-5 text-white'
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                  >
-                    <circle
-                      className='opacity-25'
-                      cx='12'
-                      cy='12'
-                      r='10'
-                      stroke='currentColor'
-                      strokeWidth='4'
-                    />
-                    <path
-                      className='opacity-75'
-                      fill='currentColor'
-                      d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-                    />
-                  </svg>
-                </div>
-              : 'Login'
+                ? <div className='flex items-center justify-center space-x-2'>
+                    <span>
+                      {showLogin
+                        ? 'Logging in...'
+                        : 'Registering...'
+                      }
+                    </span>
+                    <svg
+                      className='animate-spin h-5 w-5 text-white'
+                      xmlns='http://www.w3.org/2000/svg'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                    >
+                      <circle
+                        className='opacity-25'
+                        cx='12'
+                        cy='12'
+                        r='10'
+                        stroke='currentColor'
+                        strokeWidth='4'
+                      />
+                      <path
+                        className='opacity-75'
+                        fill='currentColor'
+                        d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                      />
+                    </svg>
+                  </div>
+                : showLogin? 'Login' : 'Register'
               }
             </button>
           </div>
         </form>
 
-        <div className='flex flex-col sm:flex-row justify-between items-center mt-6 text-sm'>
+        <div className='flex flex-col sm:flex-row justify-between items-center text-sm'>
           <button
-            onClick={() => navigate('/register')}
-            className='text-green-600 hover:text-green-800 hover:underline mb-2 sm:mb-0'
+            onClick={() => setShowLogin(!showLogin)}
+            className='text-green-600 hover:text-green-800 hover:underline'
           >
-            No account? Create one
+            {showLogin
+              ? 'No account? Create one'
+              : 'Have an account? Login'
+            }
           </button>
           <button
             onClick={() => navigate('/forgot-email')}

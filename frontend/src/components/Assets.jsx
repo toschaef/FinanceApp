@@ -2,7 +2,6 @@ import { useContext } from 'react';
 import Context from '../Context';
 import formatCurrency from '../util/formatCurrency';
 import axios from 'axios';
-import NavBar from './NavBar';
 import AssetButton from './AssetButton';
 
 const Assets = () => {
@@ -20,7 +19,6 @@ const Assets = () => {
   }
 
   return (<>
-    <NavBar />
     <h1>Assets</h1>
     {Object.keys(state_assets).length === 0 ? (<>
       <p>No assets found</p>

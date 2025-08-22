@@ -1,7 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import Context from '../Context';
 import formatCurrency from '../util/formatCurrency';
-import NavBar from './NavBar';
 
 const Investments = () => {
   const { state_investments } = useContext(Context);
@@ -35,7 +34,6 @@ const Investments = () => {
 
   return (
     <div>
-      <NavBar />
       <h1>Investments</h1>
         {Object.keys(holdings).length === 0 ? (
           <p>No investments found.</p>

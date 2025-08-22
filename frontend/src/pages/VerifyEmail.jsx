@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Context from '../Context';
@@ -21,20 +21,19 @@ const VerifyEmail = ({ path, register }) => {
         code: verificationCode,
         register,
       });
-      if (res.status === 201) {
-        dispatch({
-          type: 'SET_STATE',
-          state: {
-            emailVerified: true,
-            user_token: res.data.user_token,
-          },
-        });
-        // path: 'x' === no redirect
-        if (!path && path !== 'x') {
-          navigate('/'); // redirect to input path
-        } else if (path !== 'x') {
-          navigate(`/${path}`); // redirect to input path
-        }
+
+      dispatch({
+        type: 'SET_STATE',
+        state: {
+          emailVerified: true,
+          user_token: res.data.user_token,
+        },
+      });
+      // path: 'x' === no redirect
+      if (!path && path !== 'x') {
+        navigate('/'); // redirect to /
+      } else if (path !== 'x') {
+        navigate(`/${path}`); // redirect to input path
       }
     } catch (err) {
       console.log('Error logging in', err);
@@ -48,11 +47,11 @@ const VerifyEmail = ({ path, register }) => {
     <div className='min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans'>
       <div className='bg-white p-8 rounded-lg shadow-xl w-full max-w-md'>
 
-        <h1 className='text-2xl font-bold text-gray-800 mb-6 text-center'>
+        <h1 className='text-3xl font-bold text-gray-800 mb-6 mt-4 text-center'>
           Verify Your Email
         </h1>
 
-        <p className='text-sm text-gray-600 mb-4 text-center'>
+        <p className='text-sm text-gray-600 mt-2 mb-6 text-center'>
           Enter the code emailed to <span className='font-semibold'>{email}</span>
         </p>
 
@@ -87,8 +86,8 @@ const VerifyEmail = ({ path, register }) => {
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value)}
               required
-              placeholder='123456'
-              className='shadow-sm appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out'
+              placeholder='••••••'
+              className='shadow-sm appearance-none border rounded-md py-2 px-3 ml-2 w-[calc(100%-12px)] text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out'
             />
           </div>
 

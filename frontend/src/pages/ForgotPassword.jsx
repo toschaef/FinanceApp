@@ -75,13 +75,13 @@ const ForgotPassword = () => {
             <div className='relative bg-white p-8 rounded-lg shadow-xl w-full max-w-md'>
 
               <button
-                onClick={() => navigate('/login')}
-                className='absolute top-4 right-4 text-gray-400 hover:text-gray-700 focus:outline-none'
+                onClick={() => navigate('/')}
+                className='absolute top-4 right-4 text-gray-600 hover:text-gray-800 focus:outline-none'
                 aria-label='Close'
               >
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
-                  className='h-6 w-6'
+                  className='h-5 w-5'
                   fill='none'
                   viewBox='0 0 24 24'
                   stroke='currentColor'
@@ -90,7 +90,7 @@ const ForgotPassword = () => {
                 </svg>
               </button>
 
-              <h1 className='text-3xl font-bold text-gray-800 mb-6 text-center'>Reset Password</h1>
+              <h1 className='text-3xl font-bold text-gray-800 mt-2 mb-6 text-center'>Reset Password</h1>
 
               {error && (
                 <p className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm'>
@@ -108,7 +108,7 @@ const ForgotPassword = () => {
                     onChange={(e) => setEmailInput(e.target.value)}
                     required
                     placeholder='your.email@example.com'
-                    className='shadow-sm appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out'
+                    className='shadow-sm appearance-none border rounded-md ml-2 w-[calc(100%-12px)] py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out'
                   />
                 </div>
 
@@ -120,8 +120,8 @@ const ForgotPassword = () => {
                     value={pass1}
                     onChange={(e) => setPass1(e.target.value)}
                     required
-                    placeholder='********'
-                    className='shadow-sm appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 ease-in-out'
+                    placeholder='••••••••'
+                    className='shadow-sm appearance-none border rounded-md ml-2 w-[calc(100%-12px)] py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 ease-in-out'
                   />
                 </div>
 
@@ -133,12 +133,12 @@ const ForgotPassword = () => {
                     value={pass2}
                     onChange={(e) => setPass2(e.target.value)}
                     required
-                    placeholder='********'
-                    className='shadow-sm appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 ease-in-out'
+                    placeholder='••••••••'
+                    className='shadow-sm appearance-none border rounded-md ml-2 w-[calc(100%-12px)] py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 ease-in-out'
                   />
                 </div>
 
-                <div className='flex justify-center'>
+                <div className='flex justify-center mt-2'>
                   <button
                     type='submit'
                     className='w-3/5 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed'

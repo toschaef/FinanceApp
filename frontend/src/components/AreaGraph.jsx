@@ -97,10 +97,10 @@ const AreaGraph = ({ title, timespan, height, width, accounts, investments, tran
 
   return (
     <div className='w-full flex flex-col'>
+      {title &&
+        <span className="flex items-center mb-2 ml-1 font-medium text-xl text-gray-800">{title}</span>
+      }
       <div style={dimensions}>
-        {title &&
-          <span className="flex justify-center items-center mt-2 mb-4 font-bold text-3xl">{title}</span>
-        }
         <ResponsiveContainer width='100%' height='100%'>
           <AreaChart
             // graphData with color

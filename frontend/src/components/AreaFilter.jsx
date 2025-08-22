@@ -143,8 +143,8 @@ const FilterGraph = ({ accounts, investments, transactions, assets, timespan, on
   if (thumbnail) return null;
 
   return (
-    <form className='max-w-2xl min-w-[400px] mx-auto mt-4 flex flex-col space-y-2 p-4 border border-gray-300 rounded-lg bg-white relative z-10 text-sm'>
-      <div className='flex flex-row items-center space-x-4 w-full'>
+    <form className='max-w-800px 2xl min-w-[400px] mx-auto mt-2 flex flex-col space-y-2 border border-gray-300 rounded-lg bg-white relative z-10 text-sm'>
+      <div className='flex items-center w-full'>
         <div className='relative w-1/2'>
           <select
             value={formData.span}
@@ -166,13 +166,15 @@ const FilterGraph = ({ accounts, investments, transactions, assets, timespan, on
             </svg>
           </div>
         </div>
+
+        <div className='flex bg-gray-400 justify-center mx-2 w-1 rounded-xs self-stretch' />
         
         <button
           type='button'
           onClick={toggleAdv}
           className='w-1/2 px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200'
         >
-          {advanced ? 'Hide' : 'Advanced'}
+          {advanced ? 'Hide' : 'Configure'}
         </button>
       </div>
     
@@ -180,7 +182,7 @@ const FilterGraph = ({ accounts, investments, transactions, assets, timespan, on
         <fieldset className='w-full p-3 border border-gray-300 rounded-lg space-y-1 mt-2'>
           <legend className='font-medium text-gray-700 px-1 -ml-1'>Graph filters</legend>
           
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-1 gap-x-4'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-1 gap-x-2'>
             {state_accounts.map(acc => (
               <label key={acc.account_id} className='flex items-center space-x-2 text-gray-700'>
                 <input

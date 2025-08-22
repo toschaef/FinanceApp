@@ -5,6 +5,7 @@ const initialState = {
   bankNames: [],
   email: null,
   emailVerified: false,
+  fullSideBar: false,
   graphData: [],
   hasItem: false,
   loggedIn: false,
