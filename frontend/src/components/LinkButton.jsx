@@ -1,4 +1,5 @@
 import { useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useLinkConnect from '../util/useLinkConnect'
 import Context from '../Context';
 import axios from 'axios';
@@ -6,10 +7,12 @@ import axios from 'axios';
 const LinkButton = ({ text }) => {
   const { email, bankNames, dispatch, user_token, refreshContext } = useContext(Context);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const createLink = useLinkConnect({
     onSuccess: async (public_token) => {
       try {
+        setLoading(true);
         const res = await axios.post('/api/set-access-token', {
           public_token,
           email,
@@ -22,7 +25,8 @@ const LinkButton = ({ text }) => {
             bankNames: [...bankNames, res.data.bank_name],
           }
         });
-        refreshContext(email, user_token);
+        await refreshContext(email, user_token);
+        navigate('/');
       } catch (err) {
         console.error('Error setting access token', err);
       } finally {
@@ -33,7 +37,6 @@ const LinkButton = ({ text }) => {
   );
 
   const handleClick = () => {
-    setLoading(true);
     createLink();
   }
 

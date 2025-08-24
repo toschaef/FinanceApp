@@ -4,7 +4,7 @@ import formatCurrency from '../util/formatCurrency';
 
 const Transactions = () => {
   const { state_transactions } = useContext(Context);
-  const [transactions, setTransactions] = useState('');
+  const [transactions, setTransactions] = useState({});
 
   const groupByBankAndAccount = (transactions) => {
     const mappedTransactions = transactions.map((t) => ({
@@ -31,7 +31,7 @@ const Transactions = () => {
 
   useEffect(() => {
     setTransactions(groupByBankAndAccount(state_transactions));
-  }, []);
+  }, [state_transactions]);
 
   return (
     <div>
@@ -40,7 +40,7 @@ const Transactions = () => {
           <p>No transactions found.</p>
         ) : (
           <>
-          {transactions
+          {Object.entries(transactions)
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([bankName, accounts]) => (
               <div key={bankName}>

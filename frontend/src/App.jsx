@@ -22,8 +22,7 @@ const App = () => {
           {loggedIn ? (
             <>
               <Route index element={<Dashboard />} />
-              <Route path='manage-banks' element={<ManageBanks />} />
-              <Route path='accounts' element={<Accounts />} />
+              <Route path='accounts' element={<ManageBanks />} />
               <Route path='transactions' element={<Transactions />} />
               <Route path='investments' element={<Investments />} />
               <Route path='assets' element={<Assets />} />

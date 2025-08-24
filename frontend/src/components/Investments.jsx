@@ -4,7 +4,7 @@ import formatCurrency from '../util/formatCurrency';
 
 const Investments = () => {
   const { state_investments } = useContext(Context);
-  const [holdings, setHoldings] = useState('');
+  const [holdings, setHoldings] = useState({});
 
   const groupByBankAndAccount = (holdings) => {
     const mappedHoldings = holdings.map((h) => ({
