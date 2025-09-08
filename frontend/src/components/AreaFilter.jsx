@@ -2,6 +2,12 @@ import { useState, useEffect, useMemo, useContext } from 'react';
 import { subDays, eachDayOfInterval, eachHourOfInterval, eachMinuteOfInterval, formatISO } from 'date-fns';
 import Context from '../Context';
 
+/*
+  perams:
+    timespan - current graph timespan
+    accounts, investments, transactions, assets - parent graph's scope
+    thumbnail (bool) - when true hide
+*/
 const FilterGraph = ({ accounts, investments, transactions, assets, timespan, onChange = () => {}, thumbnail }) => {
   const { state_transactions, state_investments, state_accounts, state_assets } = useContext(Context);
   const [advanced, setAdvanced] = useState(false);
@@ -143,15 +149,15 @@ const FilterGraph = ({ accounts, investments, transactions, assets, timespan, on
   if (thumbnail) return null;
 
   return (
-    <form className='max-w-[800px] w-5/6 mx-auto p-2 flex flex-col items-center border border-gray-300 rounded-lg bg-white relative text-sm'>
+    <form className={`${advanced? 'md:w-2/3 sm:w-5/6 w-full':'sm:w-5/6 w-full'} mx-auto p-2 flex flex-col items-center border border-gray-300 rounded-lg bg-white relative text-sm transition-all duration-300 ease`}>
       <div className='flex clex-col items-center w-full space-x-2'>
         <div className='relative flex-1'>
           <select
             value={formData.span}
             onChange={handleSelectChange}
-            className='block w-full appearance-none bg-white border border-gray-300 py-1.5 px-2 pr-6 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all duration-150'
+            className='flex justify-center w-full appearance-auto bg-white border border-gray-300 py-1.5 px-3 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-xs transition-all duration-150'
           >
-            <option value='x'>All Time</option>
+            <option value='x'>All</option>
             <option value='1'>1 Day</option>
             <option value='3'>3 Days</option>
             <option value='7'>1 Week</option>
@@ -160,21 +166,12 @@ const FilterGraph = ({ accounts, investments, transactions, assets, timespan, on
             <option value='365'>1 Year</option>
             <option value='1095'>3 Years</option>
           </select>
-          <div className='pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-gray-700'>
-            <svg className='h-4 w-4' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'>
-              <path
-                fillRule='evenodd'
-                d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
-                clipRule='evenodd'
-              />
-            </svg>
-          </div>
         </div>
 
         <button
           type='button'
           onClick={toggleAdv}
-          className='flex-1 px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200'
+          className='flex-1 w-1/3 px-3 py-1.5 border border-transparent rounded-md shadow-sm sm:text-sm text-xs font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200'
         >
           {advanced? 'Hide' : 'Configure'}
         </button>
@@ -199,7 +196,7 @@ const FilterGraph = ({ accounts, investments, transactions, assets, timespan, on
             ))}
             
             {state_assets.map(ast => (
-              <label key={ast.id} className='flex items-center space-x-2 text-gray-700 sm:text-sm'>
+              <label key={ast.id} className='flex items-center space-x-2 text-gray-700 md:text-md text-sm'>
                 <input
                   type='checkbox'
                   name={ast.id}

@@ -2,12 +2,15 @@ import { useContext } from 'react';
 import LinkButton from '../components/LinkButton';
 import Context from '../Context';
 import AreaGraph from '../components/AreaGraph'
+// import Transactions from '../components/Transactions';
 
 const Dashboard = () => {
-  const { hasItem, state_transactions, state_investments, state_accounts, state_assets } = useContext(Context);
+  const { hasItem, isMobileView, state_transactions, state_investments, state_accounts, state_assets } = useContext(Context);
+
   const userHasNothing = () => {
     return !hasItem && state_assets.length === 0;
   }
+
   const userHasInvestment = () => {
     return Boolean(state_investments.length);
   }
@@ -20,39 +23,44 @@ const Dashboard = () => {
 
   return (
     <div className='font-sans'>
-      <div className='flex flex-col items-center justify-center p-4'>
+      <div className='flex flex-col justify-center p-4'>
         {userHasNothing()
           ? <div className='text-center p-8 bg-white rounded-lg shadow-md'>
               <h2 className='text-2xl font-medium text-gray-700 mb-4'>No accounts linked. Link one?</h2>
               <LinkButton text='Link Bank' />
             </div>
-          : <div className='flex flex-col md:flex-row w-full justify-center items-start gap-4'>
-              <div className='max-w-[800px] md:w-[50%] sm:w-full bg-white p-4 rounded-lg shadow-md'>
+          : <div className='flex h-full md:flex-row flex-col w-full justify-center items-start gap-4 transition-all duration-300 ease-in-out'>
+              <div className='flex items-center h-auto max-w-[800px] md:w-[50%] w-full bg-white p-4 rounded-lg shadow-md transition-all duration-200'>
                 <AreaGraph
-                  title={'Accounts Overview'}
-                  subtitle={'Total Balance'}
-                  height={'250px'}
+                  title='Accounts Overview'
+                  subtitle='Total Balance'
+                  height={isMobileView? '125px' : '250px'}
+                  width='90%'
                   accounts={state_accounts}
                   investments={state_investments}
                   transactions={state_transactions}
                   assets={[]}
                   thumbnail={false}
+                  timespan='x'
                 />
               </div>
               {userHasInvestment() &&
-                <div className='max-w-[800px] md:w-[50%] sm:w-full bg-white p-4 rounded-lg shadow-md'>
+              <div className='flex items-center h-auto max-w-[800px] md:w-[50%] w-full bg-white p-4 rounded-lg shadow-md transition-all duration-200'>
                   <AreaGraph 
-                    title={'Investment Overview'}
-                    subtitle={'Investment Balance'}
-                    height={'250px'}
+                    title='Investment Overview'
+                    subtitle='Investment Balance'
+                    height={isMobileView? '125px' : '250px'}
+                    width='90%'
                     accounts={accountsWithInvestments()}
                     investments={state_investments}
                     transactions={[]}
                     assets={[]}
                     thumbnail={false}
+                    timespan='x'
                   />
                 </div>
               }
+              {/* <Transactions /> */}
             </div>
         }
       </div>

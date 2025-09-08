@@ -118,7 +118,7 @@ const ManageBanks = () => {
                         transactions={dataFromBank(name)[1]}
                         investments={dataFromBank(name)[2]}
                         assets={[]}
-                        span={'x'}
+                        timespan={'x'}
                         thumbnail={true}
                       />
                     </div>

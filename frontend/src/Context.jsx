@@ -1,4 +1,4 @@
-import { createContext, useReducer } from 'react';
+import { createContext, useReducer, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const initialState = {
@@ -8,6 +8,7 @@ const initialState = {
   fullSideBar: false,
   graphData: [],
   hasItem: false,
+  isMobileView: false,
   loggedIn: false,
   state_accounts: [],
   state_assets: [],
@@ -16,18 +17,13 @@ const initialState = {
   user_token: null,
 };
 
+
 const reducer = (state, action) => {
   switch (action.type) {
     case 'SET_STATE':
       return { ...state, ...action.state };
     case 'WIPE_STATE':
         return { ...initialState };
-    case 'REM_BANK':
-      const filtered = bankNames.filter((e) => { e !== action.bankName }); 
-      return {
-        ...state,
-        bankNames: filtered,
-      }
     default:
       return state;
   }
@@ -37,6 +33,16 @@ const Context = createContext();
 
 const Provider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
+    
+  // update isMobileView
+  useEffect(() => {
+    const updateHeight = () => {
+      dispatch({ type: 'SET_STATE', state: { isMobileView: window.innerWidth < 640 } });
+    };
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, []);
 
   const refreshContext = async (email, user_token) => {
     try {

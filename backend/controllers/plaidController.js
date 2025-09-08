@@ -25,6 +25,24 @@ const setAccessToken = async (req, res) => {
   const { public_token, email, user_token } = req.body;
   const startDate = '2000-01-01';
   const endDate = new Date().toISOString().split('T')[0];
+  const financeCategoryMap = {
+    INCOME: 'Income',
+    TRANSFER_IN: 'Transfer',
+    TRANSFER_OUT: 'Transfer',
+    LOAN_PAYMENTS: 'Loan Payment',
+    BANK_FEES: 'Bank Fee',
+    ENTERTAINMENT: 'Entertainment',
+    FOOD_AND_DRINK: 'Food and Drink',
+    GENERAL_MERCHANDISE: 'Shopping',
+    HOME_IMPROVEMENT: 'Home Improvement',
+    MEDICAL: 'Medical',
+    PERSONAL_CARE: 'Personal Care',
+    GENERAL_SERVICES: 'Service',
+    GOVERNMENT_AND_NON_PROFIT: 'Non-Profit',
+    TRANSPORTATION: 'Transportation',
+    TRAVEL: 'Travel',
+    RENT_AND_UTILITIES: 'Rent',
+  }
 
   try {
     // check for valid jwt
@@ -71,19 +89,19 @@ const setAccessToken = async (req, res) => {
         account.type,
         account.subtype,
         institutionName,
+        mask,
       ]);
 
       await db.promise().query(
         `insert into accounts
-         (account_id, user_id, item_id, account_balance, iso_currency_code, account_name, account_type, account_subtype, institution_name)
+         (account_id, user_id, item_id, account_balance, iso_currency_code, account_name, account_type, account_subtype, institution_name, mask)
           values ?`,
         [accountValues]
       );
     }
-    console.log('inserted accounts');
 
     const accountMap = Object.fromEntries(
-      accounts.map(a => [a.account_id, a.name])
+      accounts.map(a => [a.account_id, { name: a.name, type: a.type }])
     );
 
     // store transactions in transactions
@@ -101,23 +119,24 @@ const setAccessToken = async (req, res) => {
         item_id,
         txn.account_id,
         txn.amount,
-        txn.name,
+        txn.merchant_name,
         txn.iso_currency_code,
         txn.date,
-        accountMap[txn.account_id] || 'Unknown Account',
+        accountMap[txn.account_id].name || 'Unknown Account',
         txn.payment_channel || 'unresolved',
         txn.transaction_code || '',
         institutionName,
+        financeCategoryMap[txn.personal_finance_category.primary] || '', // transaction type
+        accountMap[txn.account_id].mask || '----',
       ]);
 
       await db.promise().query(
         `insert into transactions
-         (user_id, item_id, account_id, amount, transaction_name, iso_currency_code, transaction_date, account_name, payment_channel, transaction_subtype, institution_name)
+         (user_id, item_id, account_id, amount, transaction_name, iso_currency_code, transaction_date, account_name, payment_channel, transaction_subtype, institution_name, finance_category, mask)
          values ?`,
         [transactionData]
       );
     }
-    console.log('inserted transactions');
 
     const investmentsResponse = await client.investmentsHoldingsGet({ access_token });
 
@@ -147,18 +166,18 @@ const setAccessToken = async (req, res) => {
           s.name,
           s.ticker_symbol || '',
           institutionName,
-          accountMap[inv.account_id] || 'Unknown Account',
+          accountMap[inv.account_id].name || 'Unknown Account',
+          accountMap[inv.account_id].mask || '----',
         ];
       });
 
       await db.promise().query(
         `insert into investments
-         (user_id, item_id, account_id, security_id, quantity, institution_price, institution_value, iso_currency_code, investment_name, ticker_symbol, institution_name, account_name)
+         (user_id, item_id, account_id, security_id, quantity, institution_price, institution_value, iso_currency_code, investment_name, ticker_symbol, institution_name, account_name, mask)
          values ?`,
         [investmentData]
       );
     }
-    console.log('inserted investments');
 
     const investmentTransactionsResponse = await client.investmentsTransactionsGet({
       access_token,
@@ -191,7 +210,6 @@ const setAccessToken = async (req, res) => {
         [investmentTransactionData]
       );
     }
-    console.log('inserted investment transactions');
 
     res.status(201).json({ bank_name: institutionName });
   } catch (err) {
