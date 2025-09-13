@@ -1,8 +1,8 @@
 import { useContext } from 'react';
-import Context from '../Context';
-import formatCurrency from '../util/formatCurrency';
+import Context from '../../Context';
+import formatCurrency from '../../util/formatCurrency';
 import axios from 'axios';
-import AssetButton from './AssetButton';
+// import AssetButton from './AssetsForm';
 
 const Assets = () => {
   const { email, state_assets, user_token, refreshProduct } = useContext(Context);
@@ -34,7 +34,7 @@ const Assets = () => {
             {ast.bio}
           </li>
       ))}
-      <AssetButton text='Add Asset' />
+      {/* <AssetButton text='Add Asset' /> */}
     </>)}
   </>);
 };

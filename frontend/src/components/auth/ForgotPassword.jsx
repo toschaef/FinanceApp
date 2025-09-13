@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import Context from '../Context';
+import Context from '../../Context';
 import axios from 'axios';
 import VerifyEmail from './VerifyEmail';
 import { useNavigate } from 'react-router-dom';

@@ -1,3 +1,5 @@
+drop table if exists investment_transactions, investments, transactions, assets, accounts, items, users;
+
 create table users (
   id int auto_increment,
   email varchar(255),
@@ -30,7 +32,7 @@ create table accounts (
   account_subtype varchar(50),
   institution_name varchar(255),
   mask char(4),
-  foreign key (user_id) references users(id),
+  foreign key (user_id) references users(id)
 );
 
 create table transactions (
@@ -48,6 +50,8 @@ create table transactions (
   institution_name varchar(255),
   finance_category varchar(255),
   mask char(4),
+  lat decimal(9,6),
+  lng decimal(9,6),
   foreign key (user_id) references users(id)
 );
 
@@ -87,7 +91,7 @@ create table investment_transactions (
 );
 
 create table assets (
-  id int auto_increment primary key,
+  asset_id int auto_increment primary key,
   user_id int,
   estimated_value decimal(18,2),
   quantity int default 1,

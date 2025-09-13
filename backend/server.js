@@ -1,6 +1,7 @@
 'use strict';
 
 require('dotenv').config();
+const { Worker } = require('worker_threads');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -8,13 +9,18 @@ const fs = require('fs');
 const https = require('https');
 
 // routes
-const authRoutes = require('./routes/authRoutes');
-const plaidRoutes = require('./routes/plaidRoutes');
+const accountRouter = require('./routes/accountRoutes');
+const assetRouter = require('./routes/assetRoutes');
+const authRouter = require('./routes/authRoutes');
+const investmentRouter = require('./routes/investmentRoutes');
+const plaidRouter = require('./routes/plaidRoutes');
 const plaidWebhook = require('./routes/plaidWebhook');
+const transactionRouter = require('./routes/transactionRoutes');
 
 // setup
 const app = express();
 const APP_PORT = process.env.APP_PORT || 3000;
+const worker = new Worker(path.join(__dirname, 'helpers/plaidLinkWorker.js'));
 
 // https setup
 const key = fs.readFileSync(path.join(__dirname, '../key.pem'));
@@ -26,22 +32,38 @@ server.on('clientError', (err, socket) => {
   socket.destroy();
 });
 
+worker.on('online', () => {
+    console.log('Worker thread is online!');
+});
+
+worker.on('message', (message) => {
+    console.log(`Message from worker: ${message}`);
+});
+
+worker.on('error', (err) => {
+    console.error('Worker thread error:', err);
+});
+
+worker.on('exit', (code) => {
+    if (code !== 0) {
+        console.error(`Worker stopped with exit code ${code}`);
+    }
+});
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-app.use('/api', authRoutes);
-app.use('/api', plaidRoutes);
+app.use('/api', accountRouter);
+app.use('/api', assetRouter);
+app.use('/api', authRouter);
+app.use('/api', investmentRouter);
+app.use('/api', plaidRouter);
 app.use('/api', plaidWebhook);
-
+app.use('/api', transactionRouter);
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-});
-
-// dummy response, why not
-app.use((req, res) => {
-  res.status(200).json({ data: '😊' });
 });
 
 // error handler

@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
-import Context from '../Context';
-import formatCurrency from '../util/formatCurrency';
+import Context from '../../Context';
+import formatCurrency from '../../util/formatCurrency';
 
 const Investments = () => {
   const { state_investments } = useContext(Context);

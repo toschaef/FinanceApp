@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { useContext } from 'react';
 import Context from '../Context';
 import SideBar from '../components/SideBar'
+import NavBar from '../components/NavBar';
 
 const LinLayout = () => {
   const { fullSideBar } = useContext(Context);
@@ -16,17 +17,17 @@ const LinLayout = () => {
   }
 
   return (
-    <div className='flex min-h-screen overscroll-none'>
+    <div className='flex flex-1 flex-col sm:flex-row h-screen w-screen'>
       {/* sidebar */}
       <div
-        className={`sticky top-0 h-screen bg-green-600 transition-all duration-300 ${
+        className={`hidden sm:flex sticky top-0 h-screen bg-green-600 transition-all duration-300 ${
           fullSideBar ? 'w-48' : 'w-16'
         }`}
       >
         <SideBar />
       </div>
 
-      <main className={'flex-1 bg-gray-100 transition-all duration-300'}>
+      <main className='flex flex-col flex-1 bg-gray-100 transition-all duration-300'>
 
         {/* page header */}
         <div className='flex flex-col sticky top-0 z-10 bg-white shadow-md py-3 pl-4'>
@@ -35,11 +36,19 @@ const LinLayout = () => {
           </h1>
         </div>
         
-        <Outlet />
+        <div className='flex-1 min-h-0 p-auto'>
+          <Outlet />
+        </div>
+
+        {/* nav bar */}
+        <div
+          className='sm:hidden flex h-auto w-screen sticky bottom-0 bg-green-600 transition-all duration-200'
+        >
+          <NavBar />
+        </div>
       </main>
     </div>
   );
 };
-
 
 export default LinLayout;

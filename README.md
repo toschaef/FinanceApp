@@ -25,5 +25,7 @@ This is a wip finance app with a react frontend and a node backend. It uses Plai
 
 ## Future Features
 - recurring transaction component
-- income/paystub component
 - better tailwind styles
+- transaction history cluster map
+- transaction heatmap
+- transaction type pie chart

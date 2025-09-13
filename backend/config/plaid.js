@@ -1,9 +1,9 @@
 const { Configuration, PlaidApi, PlaidEnvironments } = require('plaid');
 require('dotenv').config();
 
-const secret = process.env.PLAID_ENV === 'sandbox'
-  ? process.env.PLAID_SECRET_SANDBOX
-  : process.env.PLAID_SECRET_PRODUCTION
+const secret = process.env.PLAID_ENV === 'production'
+  ? process.env.PLAID_SECRET_PRODUCTION
+  : process.env.PLAID_SECRET_SANDBOX
 
 try {
   const configuration = new Configuration({

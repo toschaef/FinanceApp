@@ -6,14 +6,14 @@ import FilterGraph from './AreaFilter';
 
 /*
   perams:
-    title/subtitle - graph title/subtitle
+    title - graph title
     timespan - starting timespan of graph - default 30
     height - graph height: must be an absolute
     width - graph width or 100%
     accounts, investments, transactions, assets - context graphed on first render
     thumbnail (bool) - when true hide filter and axis, thumbnail view
 */
-const AreaGraph = ({ title, subtitle, timespan, height, width, accounts, investments, transactions, assets, thumbnail }) => {
+const AreaGraph = ({ title, timespan, height, width, accounts, investments, transactions, assets, thumbnail }) => {
   const { isMobileView } = useContext(Context);
   const [graphData, setGraphData] = useState([]);
 
@@ -101,6 +101,11 @@ const AreaGraph = ({ title, subtitle, timespan, height, width, accounts, investm
     const buffer = dataMax !== 0? Math.abs(dataMax * 0.25) : 1;
     ymax = dataMax + buffer;
 
+    if (thumbnail) {
+      const range = dataMax - dataMin || 1;
+      ymin -= range * 0.1;
+    }
+
     return [ymin, ymax]
   }, [graphData]);
 
@@ -124,9 +129,9 @@ const AreaGraph = ({ title, subtitle, timespan, height, width, accounts, investm
           {title &&
             <span className='pl-2 font-semibold sm:text-l text-sm text-gray-800'>{title}</span>
           }
-          {subtitle &&
+          {/* {subtitle &&
             <span className='pl-2 font-medium sm:text-sm text-xs text-gray-500'>{subtitle}</span>
-          }
+          } */}
         </div>
         
         {!thumbnail && currentBalance &&
@@ -149,7 +154,7 @@ const AreaGraph = ({ title, subtitle, timespan, height, width, accounts, investm
                 top: thumbnail? 0 : 4,
                 right: thumbnail? 0 : 6,
                 left: 0,
-                bottom: 0,
+                bottom: thumbnail? 10 : 0,
               }}
             >
               <XAxis

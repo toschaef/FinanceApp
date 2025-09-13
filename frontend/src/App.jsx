@@ -1,16 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useContext } from 'react';
 import Context from './Context';
-import LinLayout from './pages/LoggedInLayout'
-import LoutLayout from './pages/LoggedOutLayout'
+import LinLayout from './layouts/LoggedInLayout'
+import LoutLayout from './layouts/LoggedOutLayout'
 import Dashboard from './pages/Dashboard';
 import ManageBanks from './pages/ManageBanks';
-import Login from './pages/Login';
-import Transactions from './components/Transactions';
-import Investments from './components/Investments';
-import Accounts from './components/Accounts';
-import Assets from './components/Assets';
-import ForgotPassword from './pages/ForgotPassword';
+import Login from './components/auth/Login';
+import Transactions from './pages/transactions/TransactionsLayout';
+import Investments from './pages/investments/Investments';
+import Assets from './pages/assets/Assets';
+import ForgotPassword from './components/auth/ForgotPassword';
 
 const App = () => {
   const { loggedIn } = useContext(Context);

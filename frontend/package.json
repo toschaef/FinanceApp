@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@react-google-maps/api": "^2.20.7",
     "@vitejs/plugin-react": "^4.3.4",
     "axios": "^1.9.0",
     "date-fns": "^4.1.0",
@@ -13,7 +14,8 @@
     "react-plaid-link": "^4.0.0",
     "react-router-dom": "^7.5.0",
     "react-scripts": "^0.0.0",
-    "recharts": "^2.15.3"
+    "recharts": "^2.15.3",
+    "rollup": "^4.50.1"
   },
   "scripts": {
     "start": "vite",

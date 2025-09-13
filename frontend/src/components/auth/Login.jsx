@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Context from '../Context';
+import Context from '../../Context';
 import VerifyEmail from './VerifyEmail';
 
 const Login = () => {
@@ -57,6 +57,7 @@ const Login = () => {
       console.error('error:', err);
       const error = err.response.data.error || 'Network Error';
       setError(error);
+    } finally {
       setLoading(false);
     }
   };
@@ -95,7 +96,7 @@ const Login = () => {
   return (
     <div className='min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans'>
       <div className='bg-white p-8 rounded-lg shadow-xl w-full max-w-md'>
-        <h1 className='text-3xl font-bold text-gray-800 mb-6 mt-3 text-center'>
+        <h1 className='md:text-3xl sm:text-2xl text-xl font-bold text-gray-800 mb-6 mt-3 text-center'>
           {showLogin? 'Login' : 'Register'}
         </h1>
 
@@ -121,10 +122,10 @@ const Login = () => {
           className='space-y-4'
         >
           <div>
-            <label htmlFor='email' className='block text-gray-700 text-sm font-semibold mb-2'>Email:</label>
+            <label htmlFor='email' className='block text-gray-700 sm:text-sm text-xs font-semibold mb-2'>Email:</label>
             <input
               id='email'
-              className='shadow-sm appearance-none border rounded-md w-[calc(100%-12px)] ml-2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out'
+              className='shadow-sm appearance-none border rounded-md w-[calc(100%-12px)] ml-2 py-2 px-3 text-gray-700 sm:text-sm text-xs leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 ease-in-out'
               type='email'
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
@@ -133,10 +134,10 @@ const Login = () => {
             />
           </div>
           <div>
-            <label htmlFor='password' className='block text-gray-700 text-sm font-semibold mb-2'>Password:</label>
+            <label htmlFor='password' className='block text-gray-700 sm:text-sm text-xs font-semibold mb-2'>Password:</label>
             <input
               id='password'
-              className='shadow-sm appearance-none border rounded-md w-[calc(100%-12px)] ml-2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 ease-in-out'
+              className='shadow-sm appearance-none border rounded-md w-[calc(100%-12px)] ml-2 py-2 px-3 text-gray-700 sm:text-sm text-xs leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 ease-in-out'
               type='password'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -185,7 +186,7 @@ const Login = () => {
           </div>
         </form>
 
-        <div className='flex flex-col sm:flex-row justify-between items-center text-sm'>
+        <div className='flex flex-col sm:flex-row justify-between items-center sm:text-sm text-xs'>
           <button
             onClick={() => setShowLogin(!showLogin)}
             className='text-green-600 hover:text-green-800 hover:underline'

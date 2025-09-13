@@ -12,7 +12,7 @@ router.post('/webhook', (req, res) => {
        break;
     }
   } catch (err) {
-    console.error(`Error recieving webhook ${err.message}`);
+    console.error(`Error receiving webhook ${err.message}`);
     res.sendStatus(500);
   }
 });
