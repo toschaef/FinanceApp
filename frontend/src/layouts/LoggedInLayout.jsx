@@ -17,7 +17,7 @@ const LinLayout = () => {
   }
 
   return (
-    <div className='flex flex-1 flex-col sm:flex-row h-screen w-screen'>
+    <div className='flex flex-col min-h-screen w-screen sm:flex-row sm:h-screen sm:overflow-hidden'>
       {/* sidebar */}
       <div
         className={`hidden sm:flex sticky top-0 h-screen bg-green-600 transition-all duration-300 ${
@@ -27,10 +27,10 @@ const LinLayout = () => {
         <SideBar />
       </div>
 
-      <main className='flex flex-col flex-1 bg-gray-100 transition-all duration-300'>
+      <main className='flex flex-col flex-1 bg-gray-100 sm:overflow-y-auto transition-all duration-300'>
 
         {/* page header */}
-        <div className='flex flex-col sticky top-0 z-10 bg-white shadow-md py-3 pl-4'>
+        <div className='flex flex-col sticky top-0 z-50 bg-white shadow-md py-3 pl-4'>
           <h1 className='text-md font-bold text-gray-700'>
             {urlmap[pathname] || 'Unknown Page'}
           </h1>

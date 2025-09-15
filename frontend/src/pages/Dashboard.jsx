@@ -33,13 +33,13 @@ const Dashboard = () => {
               <h2 className='text-2xl font-semibold text-gray-700 mb-4'>No accounts linked. Link one?</h2>
               <LinkButton text='Link Bank' />
             </div>
-          : <div className='flex flex-col items-center gap-4 w-full'>
+          : <div className='flex flex-col md:h-1/2 items-center gap-4 w-full'>
               <div className='flex h-full md:flex-row flex-col w-full max-w-7xl justify-center items-stretch gap-4 transition-all duration-300 ease-in-out'>
-                <div className='flex items-center md:w-1/2 w-full bg-white p-4 rounded-lg shadow-md transition-all duration-200'>
+                <div className='flex flex-grow items-center md:w-1/2 w-full bg-white p-4 rounded-lg shadow-md transition-all duration-200'>
                   <AreaGraph
                     title='Accounts Overview'
                     subtitle='Total Balance'
-                    height={isMobileView? '125px' : '250px'}
+                    height={isMobileView? '125px' : '200px'}
                     width='90%'
                     accounts={state_accounts}
                     investments={state_investments}
@@ -50,11 +50,11 @@ const Dashboard = () => {
                   />
                 </div>
                 {userHasInvestment() &&
-                <div className='flex items-center md:w-1/2 w-full bg-white p-4 rounded-lg shadow-md transition-all duration-200'>
+                <div className='flex flex-grow items-center md:w-1/2 w-full bg-white p-4 rounded-lg shadow-md transition-all duration-200'>
                     <AreaGraph 
                       title='Investment Overview'
                       subtitle='Investment Balance'
-                      height={isMobileView? '125px' : '250px'}
+                      height={isMobileView? '125px' : '200px'}
                       width='90%'
                       accounts={accountsWithInvestments()}
                       investments={state_investments}
@@ -68,9 +68,9 @@ const Dashboard = () => {
               </div>
 
               {hasLocationData() &&
-                <div className='w-full max-w-7xl bg-white p-4 rounded-lg shadow-md'>
-                    <h3 className='text-lg font-semibold text-gray-700 mb-4'>Spending Heatmap</h3>
-                    <div className='rounded-lg overflow-hidden h-[400px]'>
+                <div className='flex-grow md:w-1/2 w-full bg-white py-4 px-6 rounded-lg shadow-md transition-all duration-200'>
+                    <h3 className='text-md sm:text-lg font-semibold text-gray-700 mb-4'>Spending Heatmap</h3>
+                    <div className='rounded-lg overflow-hidden h-[250px]'>
                         <HeatMap />
                     </div>
                 </div>

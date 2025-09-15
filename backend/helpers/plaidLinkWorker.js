@@ -82,7 +82,7 @@ const plaidLinkWorker = async () => {
               item_id,
               txn.account_id,
               txn.amount,
-              txn.merchant_name,
+              txn.merchant_name || txn.name || 'Transaction',
               txn.iso_currency_code,
               txn.date,
               accountMap[txn.account_id].name || 'Unknown Account',

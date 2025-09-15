@@ -22,7 +22,7 @@ const Assets = () => {
     <h1>Assets</h1>
     {Object.keys(state_assets).length === 0 ? (<>
       <p>No assets found</p>
-      <AssetButton text='Add One' />
+      {/* <AssetButton text='Add One' /> */}
     </>) : (<>
       {state_assets
         .sort((a, b) => a.asset_name.localeCompare(b.asset_name))

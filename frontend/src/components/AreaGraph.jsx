@@ -4,15 +4,19 @@ import Context from '../Context';
 import dayjs from 'dayjs';
 import FilterGraph from './AreaFilter';
 
-/*
-  perams:
-    title - graph title
-    timespan - starting timespan of graph - default 30
-    height - graph height: must be an absolute
-    width - graph width or 100%
-    accounts, investments, transactions, assets - context graphed on first render
-    thumbnail (bool) - when true hide filter and axis, thumbnail view
-*/
+/**
+ * 
+ * @param {title} String - graph title
+ * @param {timespan} String - graph timespan
+ * @param {height} Number - graph height
+ * @param {width} String - graph width
+ * @param {accounts} Array - accounts in graph's scope
+ * @param {investments} Array - investments in graph's scope
+ * @param {transactions} Array - transactions in graph's scope
+ * @param {assets} Array - assets in graph's scope
+ * @param {thumbnail} Boolean - if true hide axis and tooltip
+ * 
+ */
 const AreaGraph = ({ title, timespan, height, width, accounts, investments, transactions, assets, thumbnail }) => {
   const { isMobileView } = useContext(Context);
   const [graphData, setGraphData] = useState([]);

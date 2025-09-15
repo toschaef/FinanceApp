@@ -2,12 +2,17 @@ import { useState, useEffect, useMemo, useContext } from 'react';
 import { subDays, eachDayOfInterval, eachHourOfInterval, eachMinuteOfInterval, formatISO } from 'date-fns';
 import Context from '../Context';
 
-/*
-  perams:
-    timespan - current graph timespan
-    accounts, investments, transactions, assets - parent graph's scope
-    thumbnail (bool) - when true hide
-*/
+/**
+ * 
+ * @param {accounts} Array - accounts in graph's scope
+ * @param {investments} Array - investments in graph's scope
+ * @param {transactions} Array - transactions in graph's scope
+ * @param {assets} Array - assets in graph's scope
+ * @param {timespan} String - graph's timespan
+ * @param {onChange} Function - callback when graph data changes
+ * @param {thumbnail} Boolean - if true: hide
+ *  
+ */
 const FilterGraph = ({ accounts, investments, transactions, assets, timespan, onChange = () => {}, thumbnail }) => {
   const { state_transactions, state_investments, state_accounts, state_assets } = useContext(Context);
   const [advanced, setAdvanced] = useState(false);

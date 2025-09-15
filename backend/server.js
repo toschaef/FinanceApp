@@ -32,10 +32,6 @@ server.on('clientError', (err, socket) => {
   socket.destroy();
 });
 
-worker.on('online', () => {
-    console.log('Worker thread is online!');
-});
-
 worker.on('message', (message) => {
     console.log(`Message from worker: ${message}`);
 });

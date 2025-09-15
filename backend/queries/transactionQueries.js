@@ -14,7 +14,7 @@ const postTransaction = async (data) => {
     data.item_id || null,
     data.account_id || null,
     data.amount,
-    data.merchant_name || data.transaction_name,
+    data.merchant_name || data.transaction_name || 'Transaction' ,
     data.iso_currency_code || 'USD',
     data.transaction_date || null,
     data.account_name || 'Account',

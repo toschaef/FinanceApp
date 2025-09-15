@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" role="img" aria-label="FinanceApp logo">
+  <title>FinanceApp</title>
+  <!-- white border with less top padding and more horizontal padding -->
+  <rect x="3" y="36" width="94" height="28" rx="8" fill="none" stroke="white" stroke-width="2"></rect>
+  <!-- smaller white text, vertically centered -->
+  <text x="50" y="54" text-anchor="middle" font-family="Verdana, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" fill="white">FinanceApp</text>
+</svg>

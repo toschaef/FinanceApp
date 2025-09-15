@@ -1,31 +1,46 @@
 # Finance Visualizer WIP
 
-This is a wip finance app with a react frontend and a node backend. It uses Plaid API to fetch user banking information.
+This is a work-in-progress finance app with a React frontend and a Node/Express backend.  
+It uses the Plaid API to fetch and visualize user banking information.
 
 ## Features
-- Bank linking via Plaid
-- Registration with email verification via NodeMailer
-- Session verification via JWT
-- Password incryption via bcrypt
-- Rate Limiting through express-rate-limit
-- Retrival and display of user finances
-- Asset recording and management
-- Dynamic graph of user balances with filter
 
-## Technologies used
-- react
-- express.js
-- axios
-- mySql
-- redis
-- plaid API
-- bcrypt
-- recharts
-- jsonwebtoken
+### Authentication & Security
+- User registration with email verification (NodeMailer)
+- Secure password storage (bcrypt)
+- Session management and verification (JWT)
+- Rate limiting (express-rate-limit)
+- HTTPS support
+
+### Data Integration & Storage
+- Bank linking (Plaid API)
+- Retrieval and storage of user financial data (MySQL + Redis)
+- Asset recording and management (MySQL)
+
+### Visualization & Analytics
+- Dynamic balance graphs with filtering (Recharts)
+- Transaction category pie chart (Recharts)
+- Transaction heatmap (Google Maps API)
+
+### Performance & Scalability
+- Multithreaded server processing (Node.js Worker Threads)
+
+## Technologies Used
+- React
+- Express.js
+- Node.js Worker Threads
+- Axios
+- MySQL
+- Redis
+- Plaid API
+- Bcrypt
+- JSON Web Token
+- Recharts
+- Google Maps API
+- TailwindCSS
 
 ## Future Features
-- recurring transaction component
-- better tailwind styles
-- transaction history cluster map
-- transaction heatmap
-- transaction type pie chart
+- Recurring transactions component
+- Improved Tailwind styling and UI polish
+- Transaction calendar component
+- Advanced data filtering and export options
