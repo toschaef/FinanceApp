@@ -1,4 +1,5 @@
 import { createContext, useReducer, useState, useEffect } from 'react';
+import usePolling from './util/usePolling';
 import axios from 'axios';
 
 const initialState = {
@@ -10,6 +11,8 @@ const initialState = {
   hasItem: false,
   isMobileView: false,
   loggedIn: false,
+  login_error: null,
+  polling_interval: 15000, // 15 seconds
   state_accounts: [],
   state_assets: [],
   state_investments: [],
@@ -24,6 +27,8 @@ const reducer = (state, action) => {
       return { ...state, ...action.state };
     case 'WIPE_STATE':
         return { ...initialState };
+    case 'WIPE_AND_SET_STATE':
+      return { ...initialState, ...action.state };
     default:
       return state;
   }
@@ -77,6 +82,8 @@ const Provider = ({ children }) => {
       console.error('Error refreshing product', err);
     }
   }
+
+  usePolling({ state, dispatch, refreshContext });
 
   return (
     <Context.Provider value={{ ...state, dispatch, refreshContext, refreshProduct }}>

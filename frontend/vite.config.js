@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 
 export default defineConfig({
+  envDir: '../',
   plugins: [react()],
   server: {
     port: 3000,
@@ -20,4 +21,3 @@ export default defineConfig({
     },
   },
 })
-

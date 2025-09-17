@@ -5,7 +5,7 @@ import Context from '../Context';
 const HeatMap = () => {
   const { state_transactions } = useContext(Context);
   const mapRef = useRef(null);
-  const [zoom, setZoom] = useState(11);
+  const [map_zoom, setZoom] = useState(11);
   const [activeMarker, setActiveMarker] = useState(null);
 
   const { isLoaded } = useLoadScript({ 
@@ -64,15 +64,17 @@ const HeatMap = () => {
         ]
       }}
     >
-      <HeatmapLayer
-        data={
-          state_transactions.map((t) => 
-            new google.maps.LatLng(Number(t.lat), Number(t.lng))
-        )}
-        options={{ radius: 40, opacity: zoom < 13 ? 0.6 : 0 }}
-      />
-
-      {zoom >= 13 && state_transactions.map(
+      {map_zoom < 13 &&
+        <HeatmapLayer
+          key='heatmap'
+          data={
+            state_transactions.map((t) => 
+              new google.maps.LatLng(Number(t.lat), Number(t.lng))
+            )}
+          options={{ radius: 20, opacity: map_zoom < 13 ? 0.6 : 0 }}
+        />
+      }
+      {map_zoom >= 13 && state_transactions.map(
         (t, i) =>
           t.lat &&
           t.lng && (

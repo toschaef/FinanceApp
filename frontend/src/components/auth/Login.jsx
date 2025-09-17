@@ -5,13 +5,13 @@ import Context from '../../Context';
 import VerifyEmail from './VerifyEmail';
 
 const Login = () => {
+  const { emailVerified, login_error, dispatch } = useContext(Context);
   const [showLogin, setShowLogin] = useState(true); // toggle between login/register true: login
   const [showVerify, setShowVerify] = useState(false); // toggle showing email verification
   const [emailInput, setEmailInput] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { emailVerified, dispatch } = useContext(Context);
+  const [error, setError] = useState(login_error || '');
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {

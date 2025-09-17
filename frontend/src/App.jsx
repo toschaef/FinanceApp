@@ -10,6 +10,7 @@ import Transactions from './pages/transactions/TransactionsLayout';
 import Investments from './pages/investments/Investments';
 import Assets from './pages/assets/Assets';
 import ForgotPassword from './components/auth/ForgotPassword';
+import usePolling from './util/usePolling';
 
 const App = () => {
   const { loggedIn } = useContext(Context);

@@ -23,9 +23,10 @@ const LinkButton = ({ text }) => {
           state: {
             hasItem: true,
             bankNames: [...bankNames, res.data.bank_name],
+            polling_interval: 2000, // set to 2 seconds
           }
         });
-        await refreshContext(email, user_token);
+
         navigate('/');
       } catch (err) {
         console.error('Error setting access token', err);
