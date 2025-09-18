@@ -4,6 +4,7 @@ create table users (
   id int auto_increment,
   email varchar(255),
   password varchar(255),
+  needs_update boolean default true,
   primary key (id)
 );
 

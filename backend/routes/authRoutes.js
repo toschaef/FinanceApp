@@ -1,6 +1,6 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
-const { startRegistration, verifyAndRegister, login, changePassword } = require('../controllers/authController');
+const { startRegistration, verifyAndRegister, login, changePassword, checkStatus } = require('../controllers/authController');
 
 const router = express.Router();
 
@@ -24,5 +24,6 @@ router.post('/send-verification-email', startRegistration);
 router.post('/verify-email', verifyLimiter, verifyAndRegister);
 router.post('/login', loginLimiter, login);
 router.patch('/update-password', changePassword);
+router.get('/status', checkStatus)
 
 module.exports = router;

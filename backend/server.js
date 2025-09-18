@@ -1,11 +1,12 @@
 'use strict';
 
-require('dotenv').config();
+require('dotenv').config({ path: '../.env' });
 const { Worker } = require('worker_threads');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 const https = require('https');
 
 // routes
@@ -19,33 +20,11 @@ const transactionRouter = require('./routes/transactionRoutes');
 
 // setup
 const app = express();
-const APP_PORT = process.env.APP_PORT || 3000;
+const isProd = process.env.NODE_ENV === 'production';
+const port = isProd ? 443 : 5000;
 const worker = new Worker(path.join(__dirname, 'helpers/plaidLinkWorker.js'));
 
-// https setup
-const key = fs.readFileSync(path.join(__dirname, '../key.pem'));
-const cert = fs.readFileSync(path.join(__dirname, '../cert.pem'));
-const server = https.createServer({ key, cert }, app);
-
-server.on('clientError', (err, socket) => {
-  console.error('Client error:', err.message);
-  socket.destroy();
-});
-
-worker.on('message', (message) => {
-    console.log(`Message from worker: ${message}`);
-});
-
-worker.on('error', (err) => {
-    console.error('Worker thread error:', err);
-});
-
-worker.on('exit', (code) => {
-    if (code !== 0) {
-        console.error(`Worker stopped with exit code ${code}`);
-    }
-});
-
+// middlewares
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
@@ -68,7 +47,37 @@ app.use((error, req, res, next) => {
   res.status(404).json({ error: 'not found' });
 });
 
+// if in production use https
+let server;
+if (isProd) {
+  const key = fs.readFileSync(path.join(__dirname, 'certs', 'key.pem'));
+  const cert = fs.readFileSync(path.join(__dirname, 'certs', 'cert.pem'));
+  server = https.createServer({ key, cert }, app);
+
+  server.on('clientError', (err, socket) => {
+    console.error('Client error:', err.message);
+    socket.destroy();
+  });
+} else {
+  server = http.createServer(app);
+}
+
+// worker listeners
+worker.on('message', (message) => {
+  console.log(`Message from worker: ${message}`);
+});
+
+worker.on('error', (err) => {
+  console.error('Worker thread error:', err);
+});
+
+worker.on('exit', (code) => {
+  if (code !== 0) {
+    console.error(`Worker stopped with exit code ${code}`);
+  }
+});
+
 // server init
-server.listen(APP_PORT, () => {
-  console.log(`Server listening on port ${APP_PORT}`);
+server.listen(port, () => {
+  console.log(`${isProd ? 'HTTPS' : 'HTTP'} server listening on port ${port}`);
 });

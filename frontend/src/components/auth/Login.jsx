@@ -188,7 +188,7 @@ const Login = () => {
 
         <div className='flex flex-col sm:flex-row justify-between items-center sm:text-sm text-xs'>
           <button
-            onClick={() => setShowLogin(!showLogin)}
+            onClick={() => { setError(''); setShowLogin(!showLogin); }}
             className='text-green-600 hover:text-green-800 hover:underline'
           >
             {showLogin

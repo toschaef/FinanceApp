@@ -176,6 +176,11 @@ const plaidLinkWorker = async () => {
           [investmentTransactionData]
         );
       }
+
+      await db.promise().execute(
+        `update users set needs_update = true where email = ?`,
+        [email]
+      );
     } catch (err) {
       console.error(`Error processing job for user ${email}: ${err.message}`);
     }

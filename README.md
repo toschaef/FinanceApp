@@ -22,8 +22,9 @@ It uses the Plaid API to fetch and visualize user banking information.
 - Transaction category pie chart (Recharts)
 - Transaction heatmap (Google Maps API)
 
-### Performance & Scalability
+### Scalability & Deployment
 - Multithreaded server processing (Node.js Worker Threads)
+- Containerized with Docker for easy setup and deployment
 
 ## Technologies Used
 - React
@@ -38,9 +39,14 @@ It uses the Plaid API to fetch and visualize user banking information.
 - Recharts
 - Google Maps API
 - TailwindCSS
+- Docker
 
 ## Future Features
 - Recurring transactions component
 - Improved Tailwind styling and UI polish
 - Transaction calendar component
 - Advanced data filtering and export options
+
+## Instructions
+- If using HTTPS, add certificate files (`key.pem`, `cert.pem`) to `/certs/`, and switch NODE_ENV to `production` in `docker-compose.yml/ frontend->environment`
+- in project root, run `docker-compose up --build`

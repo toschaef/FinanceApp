@@ -3,6 +3,7 @@ const redis = require('../config/redis');
 const transporter = require('../config/email');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { jwtDecode } = require('jwt-decode');
 const generateCode = require('../helpers/codeGenerator');
 const verifyJwt = require('../helpers/verifyJwt');
 
@@ -105,7 +106,7 @@ const login = async (req, res) => {
     const bankNames = rawbankNames.filter(n => n != null);
     const hasItem = !!bankNames.length;
 
-    const user_token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '3h' });
+    const user_token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '15m' });
 
     res.status(200).json({
         email: user.email,
@@ -113,6 +114,11 @@ const login = async (req, res) => {
         bankNames,
         user_token,
     });
+
+    await db.promise().execute(
+      `update users set needs_update = false where email = ?`,
+      [email]
+    );
   } catch (err) {
     console.error(`Login error: ${err.message}`);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -145,9 +151,53 @@ const changePassword = async (req, res) => {
   }
 };
 
+// reissues jwt if expiring in under 1 min
+const updateJwtIfNeeded = (user_token, email) => {
+  const decoded = jwtDecode(user_token);
+  expires = new Date(decoded.exp * 1000);
+  const now = Date.now();
+  const timeRemaining = expires - now;
+  if (timeRemaining < 60 * 1000) { // < 1 min
+    return jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+  }
+  return user_token;
+};
+
+/* 
+    sends bool representing if user needs to update their data
+    also reissues jwt if expiring 
+*/
+const checkStatus = async (req, res) => {
+  let { email, user_token } = req.query;
+  try {
+    // check for valid jwt
+    if (!verifyJwt(user_token, email)) {
+      return res.status(401).json({ error: 'Invalid JWT' })
+    }
+
+    // reissues jwt if expiring in under 1 min
+    user_token = updateJwtIfNeeded(user_token, email);
+
+    const [rows] = await db.promise().execute(
+      `select needs_update from users where email = ?`,
+      [email]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const needs_update = rows[0].needs_update;
+
+    res.status(200).json({ needs_update, user_token });
+  } catch (err) {
+    console.error(`Error checking status: ${err.message}`);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 module.exports = {
   startRegistration,
   verifyAndRegister,
   login,
   changePassword,
+  checkStatus,
 };

@@ -77,8 +77,7 @@ const setAccessToken = async (req, res) => {
 
     res.status(202).json({ bank_name: institutionName });
   } catch (err) {
-    console.error(`Error in setAccessToken:`);
-    console.error(err); // Log the full error object for more detail
+    console.error(`Error setting access token: ${err.message}`);
     res.status(500).json({ error: 'Token exchange failed' });
   }
 };
@@ -100,6 +99,11 @@ const getAll = async (req, res) => {
     ]);
 
     res.status(200).json({ transactions, investments, accounts, assets });
+
+    await db.promise().execute(
+      `update users set needs_update = false where email = ?`,
+      [email]
+    );
   } catch (err) {
     console.error('Error fetching all', err);
     res.status(500).json({ error: 'Failed to fetch data' });

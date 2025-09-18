@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "443:443"
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - ./certs:/app/certs:ro
+    env_file:
+      - .env
+    depends_on:
+      - mysql
+      - redis
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+    depends_on:
+      - backend
+    command: ["npm", "run", "dev"]
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - ./db_init.sql:/docker-entrypoint-initdb.d/db_init.sql:ro
+      - mysql_data:/var/lib/mysql:rw
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "${REDIS_PORT}:6379"
+
+volumes:
+  mysql_data:
