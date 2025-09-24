@@ -20,7 +20,7 @@ const transactionRouter = require('./routes/transactionRoutes');
 
 // setup
 const app = express();
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = process.env.VITE_NODE_ENV === 'production';
 const port = isProd ? 443 : 5000;
 const worker = new Worker(path.join(__dirname, 'helpers/plaidLinkWorker.js'));
 

@@ -2,7 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import fs from 'fs'
 
-const isProd = process.env.NODE_ENV === 'production'
+const isProd = process.env.VITE_NODE_ENV === 'production'
+const useDocker = process.env.VITE_USE_DOCKER === 'true'
 
 export default defineConfig(({ command }) => {
   return {
@@ -19,7 +20,9 @@ export default defineConfig(({ command }) => {
         : undefined,
       proxy: {
         '/api': {
-          target: isProd ? 'https://backend:443' : 'http://backend:5000',
+          target: useDocker
+            ? isProd ? 'https://backend:443' : 'http://backend:5000'
+            : isProd ? 'https://localhost:443' : 'http://localhost:5000',
           changeOrigin: true,
           secure: false,
         },
