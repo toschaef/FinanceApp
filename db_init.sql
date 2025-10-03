@@ -18,7 +18,8 @@ create table items (
   transactions_cursor varchar(255) default '',
   investments_cursor varchar(255) default '',
   primary key (id),
-  foreign key (user_id) references users(id)
+  unique (item_id),
+  foreign key (user_id) references users(id) on delete cascade
 );
 
 create table accounts (
@@ -33,7 +34,9 @@ create table accounts (
   account_subtype varchar(50),
   institution_name varchar(255),
   mask char(4),
-  foreign key (user_id) references users(id)
+  unique (account_id),
+  foreign key (user_id) references users(id) on delete cascade,
+  foreign key (item_id) references items(item_id) on delete cascade
 );
 
 create table transactions (
@@ -53,7 +56,9 @@ create table transactions (
   mask char(4),
   lat decimal(9,6),
   lng decimal(9,6),
-  foreign key (user_id) references users(id)
+  foreign key (user_id) references users(id) on delete cascade,
+  foreign key (item_id) references items(item_id) on delete cascade,
+  foreign key (account_id) references accounts(account_id) on delete cascade
 );
 
 create table investments (
@@ -71,7 +76,9 @@ create table investments (
   institution_name varchar(255),
   account_name varchar(255),
   mask char(4),
-  foreign key (user_id) references users(id)
+  foreign key (user_id) references users(id) on delete cascade,
+  foreign key (item_id) references items(item_id) on delete cascade,
+  foreign key (account_id) references accounts(account_id) on delete cascade
 );
 
 create table investment_transactions (
@@ -87,8 +94,10 @@ create table investment_transactions (
   amount decimal(18,2),
   price decimal(18,4),
   quantity decimal(18,4),
-  iso_currency_code varchar(10) default 'USD',
-  foreign key (user_id) references users(id)
+  iso_currency_code varchar(10) default 'usd',
+  foreign key (user_id) references users(id) on delete cascade,
+  foreign key (item_id) references items(item_id) on delete cascade,
+  foreign key (account_id) references accounts(account_id) on delete cascade
 );
 
 create table assets (
@@ -101,5 +110,5 @@ create table assets (
   acquisition_date date,
   iso_currency_code varchar(10) default 'USD',
   bio text,
-  foreign key (user_id) references users(id)
+  foreign key (user_id) references users(id) on delete cascade
 );

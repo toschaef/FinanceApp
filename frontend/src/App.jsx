@@ -7,7 +7,7 @@ import Dashboard from './pages/Dashboard';
 import ManageBanks from './pages/ManageBanks';
 import Login from './components/auth/Login';
 import Transactions from './pages/transactions/TransactionsLayout';
-import Investments from './pages/investments/Investments';
+import Investments from './pages/investments/InvestmentsLayout';
 import Assets from './pages/assets/Assets';
 import ForgotPassword from './components/auth/ForgotPassword';
 
