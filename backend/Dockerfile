@@ -1,13 +1,11 @@
-FROM node:20
+FROM node:20-alpine
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y build-essential python3 && \
-    rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm install
+
+RUN npm ci
 
 COPY . .
 

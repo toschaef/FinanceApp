@@ -8,7 +8,6 @@ import FilterGraph from './AreaFilter';
  * 
  * @param {title} String - graph title
  * @param {timespan} String - graph timespan
- * @param {height} Number - graph height
  * @param {width} String - graph width
  * @param {accounts} Array - accounts in graph's scope
  * @param {investments} Array - investments in graph's scope
@@ -17,7 +16,7 @@ import FilterGraph from './AreaFilter';
  * @param {thumbnail} Boolean - if true hide axis and tooltip
  * 
  */
-const AreaGraph = ({ title, timespan, height, width, accounts, investments, transactions, assets, thumbnail }) => {
+const AreaGraph = ({ title, timespan, width, accounts, investments, transactions, assets, thumbnail }) => {
   const { isMobileView } = useContext(Context);
   const [graphData, setGraphData] = useState([]);
 
@@ -113,12 +112,6 @@ const AreaGraph = ({ title, timespan, height, width, accounts, investments, tran
     return [ymin, ymax]
   }, [graphData]);
 
-  const dimensions = {
-    height,
-    width,
-    overflow: 'visible',
-  }
-
    const last = formattedGraphData[formattedGraphData.length - 1];
 
   const currentBalance = last
@@ -131,7 +124,7 @@ const AreaGraph = ({ title, timespan, height, width, accounts, investments, tran
       <div className='flex justify-between items-start mb-4'>
         <div className='flex flex-col'>
           {title &&
-            <span className='pl-2 font-semibold sm:text-l text-sm text-gray-800'>{title}</span>
+            <span className='pl-2 font-semibold md:text-xl sm:text-l text-sm text-gray-800'>{title}</span>
           }
           {/* {subtitle &&
             <span className='pl-2 font-medium sm:text-sm text-xs text-gray-500'>{subtitle}</span>
@@ -148,17 +141,16 @@ const AreaGraph = ({ title, timespan, height, width, accounts, investments, tran
           </span>
         }
       </div>
-      <div className='flex w-full h-full justify-center'>
-        <div style={dimensions}>
+      <div className='flex w-full flex-1 justify-center overflow-visible md:px-16 px-4'>
           <ResponsiveContainer width='100%' height='100%'>
             <AreaChart
               // graphData with color
               data={formattedGraphData}
               margin={{
-                top: thumbnail? 0 : 4,
-                right: thumbnail? 0 : 6,
-                left: 0,
-                bottom: thumbnail? 10 : 0,
+                top:    thumbnail? 4 : isMobileView?  0 : 10,
+                right:  thumbnail? 6 : isMobileView?  5 : 25,
+                left:   thumbnail? 6 : isMobileView? 10 : 25,
+                bottom: thumbnail? 0 : isMobileView?  0 : 20,
               }}
             >
               <XAxis
@@ -233,7 +225,6 @@ const AreaGraph = ({ title, timespan, height, width, accounts, investments, tran
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
       </div>
       <FilterGraph
         timespan={timespan}

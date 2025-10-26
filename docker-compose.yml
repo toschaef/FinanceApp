@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   backend:
     build: ./backend
@@ -9,27 +7,25 @@ services:
       - "5000:5000"
     volumes:
       - ./backend:/app
+      - /app/node_modules
       - ./certs:/app/certs:ro
     env_file:
       - .env
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   frontend:
     build: ./frontend
     container_name: frontend
     ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
+      - "3000:80"
     env_file:
       - .env
-    environment:
-      NODE_ENV: development
     depends_on:
       - backend
-    command: ["npm", "run", "dev"]
 
   mysql:
     image: mysql:latest
@@ -44,6 +40,11 @@ services:
     volumes:
       - ./db_init.sql:/docker-entrypoint-initdb.d/db_init.sql:ro
       - mysql_data:/var/lib/mysql:rw
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine

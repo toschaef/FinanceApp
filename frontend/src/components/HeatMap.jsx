@@ -14,17 +14,24 @@ const HeatMap = () => {
   });
 
   const center = useMemo(() => {
-    if (!state_transactions.length) {
+    const valid = state_transactions.filter(
+      t => Number(t.lat) && Number(t.lng)
+    );
+
+    if (!valid.length) {
       return { lat: 39.8283, lng: -98.5795 };
     }
+
     let sumLat = 0, sumLng = 0;
-    for (const t of state_transactions) {
+
+    for (const t of valid) {
       sumLat += Number(t.lat);
       sumLng += Number(t.lng);
     }
+    
     return {
-      lat: sumLat / state_transactions.length,
-      lng: sumLng / state_transactions.length,
+      lat: sumLat / valid.length,
+      lng: sumLng / valid.length,
     };
   }, [state_transactions]);
 
@@ -44,7 +51,7 @@ const HeatMap = () => {
 
   return (
     <GoogleMap
-      mapContainerStyle={{ width: '100%', height: '250px' }}
+      mapContainerStyle={{ width: '100%', height: '100%' }}
       center={center}
       zoom={11}
       onLoad={(map) => { mapRef.current = map; }}
@@ -64,16 +71,20 @@ const HeatMap = () => {
         ]
       }}
     >
-      {map_zoom < 13 &&
-        <HeatmapLayer
-          key='heatmap'
-          data={
-            state_transactions.map((t) => 
-              new google.maps.LatLng(Number(t.lat), Number(t.lng))
-            )}
-          options={{ radius: 20, opacity: map_zoom < 13 ? 0.6 : 0 }}
-        />
-      }
+      <HeatmapLayer
+        key='heatmap'
+        data={
+          state_transactions
+          .filter(t => t.lat && t.lng)
+          .map((t) => 
+            new google.maps.LatLng(Number(t.lat), Number(t.lng))
+          )}
+        options={{
+          radius: map_zoom < 20? 20 : 15,
+          opacity: map_zoom < 13 ? 0.5 : 0 
+        }}
+      />
+
       {map_zoom >= 13 && state_transactions.map(
         (t, i) =>
           t.lat &&

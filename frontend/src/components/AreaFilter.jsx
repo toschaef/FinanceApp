@@ -47,6 +47,15 @@ const FilterGraph = ({ accounts, investments, transactions, assets, timespan, on
     });
   }
 
+  const allTimeSpan = (tDates, iDates, aDates) => {
+    const validTDates = tDates.filter(d => d);
+    const validIDates = iDates.filter(d => d);
+    const validADates = aDates.filter(d => d);
+
+    return subDays(new Date(Math.min(...validTDates, ...validIDates, ...validADates)), 2)
+  }
+
+
   const graphData = useMemo(() => {
     const { span, accounts: accSet, assets: asSet } = formData;
 
@@ -60,7 +69,7 @@ const FilterGraph = ({ accounts, investments, transactions, assets, timespan, on
     const end = new Date();
     const start =
       span === 'x' // if all time, pick oldest transaction/inv transaction date - 2 days
-        ? subDays(new Date(Math.min(...tDates, ...iDates, ...aDates)), 2)
+        ? allTimeSpan(tDates, iDates, aDates)
         : subDays(end, Number(span));
 
     let intervalFunc, dateKey, step, timespan = Number(span);
@@ -154,7 +163,11 @@ const FilterGraph = ({ accounts, investments, transactions, assets, timespan, on
   if (thumbnail) return null;
 
   return (
-    <form className={`${advanced? 'md:w-2/3 sm:w-5/6 w-full':'sm:w-5/6 w-full'} mx-auto p-2 flex flex-col items-center border border-gray-300 rounded-lg bg-white relative text-sm transition-all duration-300 ease`}>
+    <form className={`${advanced? 'md:w-2/3 sm:w-5/6 w-full':'sm:w-5/6 w-full'} 
+      mx-auto p-2 flex flex-col items-center border border-gray-300 rounded-lg 
+      bg-white relative text-sm 
+      transition-[width] duration-300 ease`
+    }>
       <div className='flex clex-col items-center w-full space-x-2'>
         <div className='relative flex-1'>
           <select
@@ -181,40 +194,45 @@ const FilterGraph = ({ accounts, investments, transactions, assets, timespan, on
           {advanced? 'Hide' : 'Configure'}
         </button>
       </div>
-    
-      {advanced && (
-        <fieldset className='w-full p-3 border border-gray-300 rounded-lg space-y-1 mt-2'>
-          <legend className='font-medium text-gray-700 px-1 -ml-1'>Graph filters</legend>
-          
-          <div className='grid grid-cols-2 lg:grid-cols-3 gap-y-1 gap-x-2'>
-            {state_accounts.map(acc => (
-              <label key={acc.account_id} className='flex items-center space-x-2 text-gray-700'>
-                <input
-                  type='checkbox'
-                  name={acc.account_id}
-                  checked={formData.accounts.has(acc.account_id)}
-                  onChange={handleAccountToggle}
-                  className='form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out'
-                />
-                <span>{acc.account_name}</span>
-              </label>
-            ))}
+  
+      <div className={`
+        grid w-full transition-[grid-template-rows] duration-300 ease-in-out
+        ${advanced ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}
+      `}>
+        <div className="overflow-hidden">
+          <fieldset className='w-full p-3 border border-gray-300 rounded-lg space-y-1 mt-2'>
+            <legend className='font-medium text-gray-700 px-1 -ml-1'>Graph filters</legend>
             
-            {state_assets.map(ast => (
-              <label key={ast.id} className='flex items-center space-x-2 text-gray-700 md:text-md text-sm'>
-                <input
-                  type='checkbox'
-                  name={ast.id}
-                  checked={formData.assets.has(ast.id)}
-                  onChange={handleAssetToggle}
-                  className='form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out'
-                />
-                <span>{ast.asset_name}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      )}
+            <div className='grid grid-cols-2 lg:grid-cols-3 gap-y-1 gap-x-2'>
+              {state_accounts.map(acc => (
+                <label key={acc.account_id} className='flex items-center space-x-2 text-gray-700'>
+                  <input
+                    type='checkbox'
+                    name={acc.account_id}
+                    checked={formData.accounts.has(acc.account_id)}
+                    onChange={handleAccountToggle}
+                    className='form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out'
+                  />
+                  <span>{acc.account_name}</span>
+                </label>
+              ))}
+              
+              {state_assets.map(ast => (
+                <label key={ast.id} className='flex items-center space-x-2 text-gray-700 md:text-md text-sm'>
+                  <input
+                    type='checkbox'
+                    name={ast.id}
+                    checked={formData.assets.has(ast.id)}
+                    onChange={handleAssetToggle}
+                    className='form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out'
+                  />
+                  <span>{ast.asset_name}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+      </div>
     </form>
   );
 };

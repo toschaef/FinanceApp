@@ -18,36 +18,34 @@ const SideBar = () => {
   }
 
   return (
-    <div className={'flex flex-col relative h-full min-h-screen w-full bg-green-600 text-white transition-all duration-300 overflow-hidden'}>
+    <div className={'flex flex-col p-4 relative h-full min-h-screen w-full bg-green-600 text-white transition-all duration-300 overflow-hidden'}>
       {/* sidebar toggle */}
-      <div className='flex items-center p-4'>
-        <div className={`absolute top-2 right-4 transition-all duration-300`}>
-          <img
-            src={fullSideBar? '/sidebar_open.png' : '/sidebar_closed.png'}
-            alt='Toggle'
-            className='cursor-pointer w-8 h-8 hover:opacity-90'
-            onClick={() => dispatch({
-              type: 'SET_STATE',
-              state: {
-                fullSideBar: !fullSideBar
-            }})}
-          />
-        </div>
+      <div className={`absolute top-4 right-4 transition-all duration-300`}>
+        <img
+          src={fullSideBar? '/sidebar_open.png' : '/sidebar_closed.png'}
+          alt='Toggle'
+          className='cursor-pointer w-8 h-8 hover:opacity-90'
+          onClick={() => dispatch({
+            type: 'SET_STATE',
+            state: {
+              fullSideBar: !fullSideBar
+          }})}
+        />
       </div>
 
       {/* menu selection */}
-      <nav className='flex flex-col gap-3 mt-5 px-2'>
+      <nav className='flex flex-col gap-5 mt-14'>
         {links.map((item) => (
           <Link
             to={item.path}
             key={item.name}
-            className={`flex items-center rounded-lg px-2 py-2 transition hover:bg-[#25d767] inset-shadow-sm inset-shadow-green-300 hover:opacity-90`}
+            className={`flex items-center rounded-lg transition hover:bg-[#25d767] inset-shadow-sm inset-shadow-green-300 hover:opacity-90`}
           >
             <div className='w-8 h-8 flex-shrink-0'>
               <img src={item.icon} alt={item.name} className='w-full h-full object-contain' />
             </div>
-            <div className={`flex-grow overflow-hidden transition-all duration-800 ${fullSideBar? 'w-full ml-2' : 'w-0'}`}>
-              <span className={`font-semibold text-lg whitespace-nowrap ${fullSideBar ? 'opacity-100' : 'opacity-0'}`}>
+            <div className={`flex-grow overflow-hidden transition-[width] duration-300 ease-in-out ${fullSideBar? 'w-full ml-2' : 'w-0'}`}>
+              <span className={`font-semibold text-lg whitespace-nowrap transition-opacity duration-200 ease-in-out delay-150 ${fullSideBar ? 'opacity-100' : 'opacity-0'}`}>
                 {item.name}
               </span>
             </div>
@@ -57,13 +55,13 @@ const SideBar = () => {
 
       <button
           onClick={() => handleLogout()}
-          className={`absolute bottom-2 left-2 flex items-center rounded-lg px-2 py-2 transition hover:bg-[#25d767] inset-shadow-sm inset-shadow-green-300 hover:opacity-90`}
+          className={`absolute bottom-4 left-4 right-4 flex items-center rounded-lg py-2 transition hover:bg-[#25d767] inset-shadow-sm inset-shadow-green-300 hover:opacity-90`}
         >
           <div className='w-8 h-8 flex-shrink-0'>
             <img src='/logout_icon.png' alt='Logout' className='w-full h-full object-contain'/>
           </div>
-          <div className={`flex-grow overflow-hidden transition-all duration-800 ${fullSideBar? 'w-full ml-2' : 'w-0'}`}>
-            <span className={`font-semibold text-lg whitespace-nowrap ${fullSideBar ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`flex-grow overflow-hidden transition-[width] duration-300 ease-in-out ${fullSideBar? 'w-full ml-2' : 'w-0'}`}>
+            <span className={`font-semibold text-lg whitespace-nowrap transition-opacity duration-200 ease-in-out delay-150 ${fullSideBar ? 'opacity-100' : 'opacity-0'}`}>
               Logout
             </span>
           </div>
